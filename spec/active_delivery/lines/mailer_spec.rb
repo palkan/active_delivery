@@ -2,10 +2,10 @@
 
 require "spec_helper"
 
-xdescribe "ActiveDelivery::Lines::Mailer" do
+describe "ActionMailer line", skip: !defined?(ActionMailer) do
   before do
     module ::DeliveryTesting
-      class TestMailer
+      class TestMailer < ActionMailer::Base
         def do_something
         end
 

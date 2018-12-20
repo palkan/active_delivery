@@ -1,17 +1,18 @@
 module ActiveDelivery
   module Lines
     class Base
-      attr_reader :id
+      attr_reader :id, :options
       attr_accessor :owner
       attr_writer :handler_class
 
-      def initialize(id, owner)
+      def initialize(id:, owner:, **options)
         @id = id
         @owner = owner
+        @options = options.tap(&:freeze)
       end
 
       def dup_for(new_owner)
-        self.class.new(id, new_owner)
+        self.class.new(id: id, **options, owner: new_owner)
       end
 
       def resolve_class(name)

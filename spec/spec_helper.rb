@@ -1,6 +1,6 @@
 require "bundler/setup"
 
-require "action_mailer"
+require "action_mailer" unless ENV["NO_RAILS"]
 
 require "active_delivery"
 

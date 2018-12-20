@@ -2,12 +2,12 @@
 
 require "spec_helper"
 
-# rubocop:disable Lint/DuplicateMethods, Lint/MissingCopEnableDirective
+# rubocop:disable Lint/DuplicateMethods, Lint/MissingCopEnableDirective, Style/RescueModifier
 describe ActiveDelivery::Base do
   before(:all) do
     class ::QuackLine < ActiveDelivery::Lines::Base
       def resolve_class(name)
-        name.gsub(/Delivery$/, "Quack").safe_constantize
+        ::DeliveryTesting.const_get(name.gsub(/Delivery$/, options.fetch(:suffix, "Quack"))) rescue nil
       end
 
       def notify_now(handler, mid, *args)
@@ -19,14 +19,8 @@ describe ActiveDelivery::Base do
       end
     end
 
-    class ::QuackkkLine < QuackLine
-      def resolve_class(name)
-        name.gsub(/Delivery$/, "Quackkk").safe_constantize
-      end
-    end
-
     ActiveDelivery::Base.register_line :quack, QuackLine
-    ActiveDelivery::Base.register_line :quack_quack, QuackkkLine
+    ActiveDelivery::Base.register_line :quack_quack, QuackLine, suffix: "Quackkk"
   end
 
   before do
@@ -144,7 +138,7 @@ describe ActiveDelivery::Base do
     end
   end
 
-  describe "callbacks" do
+  describe "callbacks", skip: !defined?(ActiveSupport) do
     let!(:quack_class) do
       DeliveryTesting.const_set(
         "MyQuack",
