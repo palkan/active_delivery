@@ -43,6 +43,19 @@ end
 
 - better testability (see [Testing](#testing)).
 
+## Installation
+
+Add this line to your application's Gemfile:
+
+```ruby
+gem 'active_delivery'
+```
+
+And then execute:
+
+```sh
+$ bundle
+```
 
 ## Usage
 
@@ -137,6 +150,108 @@ specify "when event is not found" do
   end.not_to have_delivered_to(Community::EventsDelivery)
 end
 ```
+
+*NOTE:** test mode activated automatically if `RAILS_ENV` or `RACK_ENV` env variable is equal to "test". Otherwise add `require "active_delivery/testing"` to your `spec_helper.rb` / `rails_helper.rb` manually.
+
+## Custom "lines"
+
+_Line_ class describes the way you want to _transfer_ your deliveries.
+
+Out-of-the box we provide only Action Mailer _line_.
+
+Line connects _delivery_ to the _sender_ class responsible for sending notifications.
+
+If you want to use parameterized deliveries, your _sender_ class must respond to `.with(params)` method.
+
+Assume that we want to send messages via _pigeons_ and we have the following sender class:
+
+```ruby
+class EventPigeon
+  class << self
+    # Add `.with` method as an alias
+    alias with new
+
+    # delegate delivery action to instance
+    def message_arrived(*args)
+      new.message_arrived(*arsg)
+    end
+  end
+
+  def initialize(params = {})
+    # do smth with params
+  end
+
+  def message_arrived(msg)
+    # send pigeon with the message
+  end
+end
+```
+
+Now we want to add a _pigeon_ line to our `EventDelivery`, that is we want to send pigeons when 
+we call `EventDelivery.notify(:message_arrived, "ping-ping!")`.
+
+Line class has the following API:
+
+```ruby
+
+class PigeonLine < ActiveDelivery::Lines::Base
+  # This method is used to infer sender class
+  # `name` is the name of the delivery class
+  def resolve_class(name)
+    name.gsub(/Delivery$/, "Pigeon").safe_constantize
+  end
+
+  # This method should return true if sender recognizes the delivery action
+  def notify?(delivery_action)
+    # `handler_class` is available within the line instance 
+    sender_class.respond_to?(delivery_action)
+  end
+
+  # Called when we want to send message synchronously
+  # `sender` here either `sender_class` or `sender_class.with(params)`
+  # if params passed.
+  def notify_now(sender, delivery_action, *args)
+    # For example, our EventPigeon class returns some `Pigeon` object
+    pigeon = sender.public_send(delivery_action, *args)
+    # PigeonLaunchService do all the sending job
+    PigeonService.launch pigeon
+  end
+
+  # Called when we want to send message asynchronously.
+  # For example, you can use background job here.
+  def notify_later(sender, delivery_action, *args)
+    pigeon = sender.public_send(delivery_action, *args)
+    # PigeonLaunchService do all the sending job
+    PigeonLaunchJob.perform_later pigeon
+  end
+end
+```
+
+Final step is to register the line within your delivery class:
+
+```ruby
+class EventDelivery < ActiveDelivery::Base
+  # under the hood a new instance of PigeonLine is created
+  # and used to send pigeons!
+  register_line :pigeon, PigeonLine
+  
+  # you can pass additional options to customize your line
+  # (and use multiple pigeons lines with different configuration)
+  #
+  # register_line :pigeon, PigeonLine, namespace: "AngryPigeons"
+  #
+  # now you can explicitly specify pigeon class
+  # pigeon MyCustomPigeon
+  #
+  # or define pigeon specific callbacks
+  # 
+  # before_notify :ensure_pigeon_is_not_dead, on: :pigeon
+end
+```
+
+## Related projects
+
+- [`abstract_notifier`](https://github.com/palkan/abstract_notifier) – Action Mailer-like interface for text-based notifications.
 
 ## Contributing
 
