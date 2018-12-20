@@ -1,3 +1,5 @@
+ENV["RACK_ENV"] = "test"
+
 require "bundler/setup"
 
 require "action_mailer" unless ENV["NO_RAILS"]

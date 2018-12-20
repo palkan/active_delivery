@@ -105,6 +105,8 @@ around_notify :set_context
 
 ## Testing
 
+**NOTE:** RSpec only for the time being.
+
 Active Delivery provides an elegant way to test deliveries in your code (i.e. when you want to test whether a notification has been sent) through a `have_delivered_to` matcher:
 
 ```ruby
