@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_delivery/version"
 require "active_delivery/base"
 require "active_delivery/callbacks" if defined?(ActiveSupport)

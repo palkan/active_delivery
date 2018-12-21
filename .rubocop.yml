@@ -16,6 +16,9 @@ AllCops:
 Standard/SemanticBlocks:
   Enabled: false
 
+Style/FrozenStringLiteralComment:
+  Enabled: true
+
 Style/TrailingCommaInArrayLiteral:
   EnforcedStyleForMultiline: no_comma
 

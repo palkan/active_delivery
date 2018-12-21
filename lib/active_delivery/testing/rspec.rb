@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveDelivery
   class HaveDeliveredTo < RSpec::Matchers::BuiltIn::BaseMatcher
     attr_reader :delivery_class, :event, :args, :params, :sync_value

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveDelivery
   module Lines
     class Mailer < Base
