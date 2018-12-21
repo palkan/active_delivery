@@ -36,6 +36,8 @@ module ActiveDelivery
       def handler_class
         return @handler_class if instance_variable_defined?(:@handler_class)
 
+        return @handler_class = nil if owner.abstract_class?
+
         @handler_class = resolve_class(owner.name) ||
                          superclass_handler
       end

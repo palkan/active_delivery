@@ -68,7 +68,7 @@ class PostsDelivery < ActiveDelivery::Base
 end
 ```
 
-It acts like a proxy in front of the different delivery channels (i.e. mailers, notifiers). That means that calling a method on delivery class invokes the same method on the corresponding class, e.g.:
+It acts like a proxy in front of the different delivery channels (i.e. mailers, notifiers). That means that calling a method on delivery class invokes the same method on the corresponding _sender_ class, e.g.:
 
 ```ruby
 PostsDelivery.notify(:published, user, post)
@@ -76,7 +76,7 @@ PostsDelivery.notify(:published, user, post)
 # under the hood it calls
 PostsMailer.published(user, post).deliver_later
 
-# and if you have a notifier (or anything else)
+# and if you have a notifier (or any other line, see below)
 PostsNotifier.published(user, post).notify_later
 ```
 
@@ -224,6 +224,16 @@ class PigeonLine < ActiveDelivery::Lines::Base
     # PigeonLaunchService do all the sending job
     PigeonLaunchJob.perform_later pigeon
   end
+end
+```
+
+**NOTE**: we fallback to superclass's sender class if `resolve_class` returns nil.
+You can disable automatic inference of sender classes by marking delivery as _abstract_:
+
+```ruby
+# we don't not want to use ApplicationMailer by default, don't we?
+class ApplicationDelivery < ActiveDelivery::Base
+  self.abstract_class = true
 end
 ```
 

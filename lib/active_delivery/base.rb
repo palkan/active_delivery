@@ -32,6 +32,8 @@ module ActiveDelivery
   # See https://api.rubyonrails.org/classes/ActionMailer/Parameterized.html
   class Base
     class << self
+      attr_accessor :abstract_class
+
       alias with new
 
       # Enqueues delivery (i.e. uses #deliver_later for mailers)
@@ -69,6 +71,10 @@ module ActiveDelivery
             delivery_lines[:#{line_id}].handler_class
           end
         CODE
+      end
+
+      def abstract_class?
+        abstract_class == true
       end
     end
 

@@ -70,6 +70,21 @@ describe ActiveDelivery::Base do
       delivery = DeliveryTesting.const_set("MyDelivery", Class.new(described_class))
       expect(delivery.quack_class).to be_nil
     end
+
+    context "with abstract deliveries" do
+      it "always return nil for abstract deliveries", :aggregate_failures do
+        delivery = DeliveryTesting.const_set("MyDelivery", Class.new(described_class) { self.abstract_class = true })
+        DeliveryTesting.const_set("MyQuack", Class.new)
+        DeliveryTesting.const_set("ParentQuack", Class.new)
+
+        expect(delivery.quack_class).to be_nil
+
+        parent_delivery = DeliveryTesting.const_set("ParentDelivery", Class.new(described_class) { self.abstract_class = true })
+        sub_delivery = DeliveryTesting.const_set("SubDelivery", Class.new(parent_delivery))
+
+        expect(sub_delivery.quack_class).to be_nil
+      end
+    end
   end
 
   context "notifications" do
