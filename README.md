@@ -3,7 +3,7 @@
 
 # Active Delivery
 
-Framework providing an entrypoint (single _interface_) for all types of notifications: mailers, push notifications, whatever you want.
+Framework providing an entry point (single _interface_) for all types of notifications: mailers, push notifications, whatever you want.
 
 <a href="https://evilmartians.com/?utm_source=action_policy">
 <img src="https://evilmartians.com/badges/sponsored-by-evil-martians.svg" alt="Sponsored by Evil Martians" width="236" height="54"></a>
@@ -17,13 +17,13 @@ Requirements:
 
 We need a way to handle different notifications _channel_ (mail, push) in one place.
 
-From the business-logic point of view we want to _notify_ a user, hence we need a _separate abstraction layer_ as an entrypoint to different types of notifications.
+From the business-logic point of view we want to _notify_ a user, hence we need a _separate abstraction layer_ as an entry point to different types of notifications.
 
 ## The solution
 
-Here comes the _Active Delivery_.
+Here comes _Active Delivery_.
 
-In the simplest case when we have only mailers Active Delivery is just a wrapper for Mailer with (possibly) some additional logic provided (e.g. preventing emails to unsubscribed users).
+In the simplest case when we have only mailers Active Delivery is just a wrapper for Mailer with (possibly) some additional logic provided (e.g., preventing emails to unsubscribed users).
 
 Motivations behind Active Delivery:
 - organize notifications related logic:
@@ -59,7 +59,7 @@ $ bundle
 
 ## Usage
 
-_Delivery_ class is used to trigger notifications. It describes how to notify a user (e.g. via email or via push notification or both):
+The _Delivery_ class is used to trigger notifications. It describes how to notify a user (e.g., via email or push notification or both):
 
 ```ruby
 class PostsDelivery < ActiveDelivery::Base
@@ -68,7 +68,7 @@ class PostsDelivery < ActiveDelivery::Base
 end
 ```
 
-It acts like a proxy in front of the different delivery channels (i.e. mailers, notifiers). That means that calling a method on delivery class invokes the same method on the corresponding _sender_ class, e.g.:
+It acts as a proxy in front of the different delivery channels (i.e., mailers, notifiers). That means that calling a method on delivery class invokes the same method on the corresponding _sender_ class, e.g.:
 
 ```ruby
 PostsDelivery.notify(:published, user, post)
@@ -88,7 +88,7 @@ Delivery also supports _parameterized_ calling:
    PostsDelivery.with(user: user).notify(:published, post)
 ```
 
-The parameters could be accessed through `params` instance method (e.g. to implement guard-like logic).
+The parameters could be accessed through the `params` instance method (e.g., to implement guard-like logic).
 
 **NOTE**: When params are presents the parametrized mailer is used, i.e.:
 
@@ -100,11 +100,11 @@ See [Rails docs](https://api.rubyonrails.org/classes/ActionMailer/Parameterized.
 
 ## Callbacks support
 
-**NOTE:** callbacks are only available if ActiveSupport is present in the app's env.
+**NOTE:** callbacks are only available if ActiveSupport is present in the app's runtime.
 
 ```ruby
 # Run method before delivering notification
-# NOTE: when `false` is returned the executation is halted
+# NOTE: when `false` is returned the execution is halted
 before_notify :do_something
 
 # You can specify a notification method (to run callback only for that method)
@@ -120,7 +120,7 @@ around_notify :set_context
 
 **NOTE:** RSpec only for the time being.
 
-Active Delivery provides an elegant way to test deliveries in your code (i.e. when you want to test whether a notification has been sent) through a `have_delivered_to` matcher:
+Active Delivery provides an elegant way to test deliveries in your code (i.e., when you want to check whether a notification has been sent) through a `have_delivered_to` matcher:
 
 ```ruby
 it "delivers notification" do
@@ -131,7 +131,7 @@ it "delivers notification" do
 You can also use such RSpec features as [compound expectations](https://relishapp.com/rspec/rspec-expectations/docs/compound-expectations) and [composed matchers](https://relishapp.com/rspec/rspec-expectations/v/3-8/docs/composing-matchers):
 
 ```ruby
-it "delivers to rsvped members via .notify" do
+it "delivers to RSVPed members via .notify" do
   expect { subject }.
     to have_delivered_to(Community::EventsDelivery, :canceled, an_instance_of(event)).with(
       a_hash_including(profile: another_profile)
@@ -141,7 +141,7 @@ it "delivers to rsvped members via .notify" do
 end
 ```
 
-If you want to test that no notification is deliver you can use negation:
+If you want to test that no notification is delivered you can use negation:
 
 ```ruby
 specify "when event is not found" do
@@ -155,11 +155,11 @@ end
 
 ## Custom "lines"
 
-_Line_ class describes the way you want to _transfer_ your deliveries.
+The _Line_ class describes the way you want to _transfer_ your deliveries.
 
-Out-of-the box we provide only Action Mailer _line_.
+We only provide only Action Mailer _line_ out-of-the-box.
 
-Line connects _delivery_ to the _sender_ class responsible for sending notifications.
+A line connects _delivery_ to the _sender_ class responsible for sending notifications.
 
 If you want to use parameterized deliveries, your _sender_ class must respond to `.with(params)` method.
 
@@ -168,10 +168,10 @@ Assume that we want to send messages via _pigeons_ and we have the following sen
 ```ruby
 class EventPigeon
   class << self
-    # Add `.with` method as an alias
+    # Add `.with`  method as an alias
     alias with new
 
-    # delegate delivery action to instance
+    # delegate delivery action to the instance
     def message_arrived(*args)
       new.message_arrived(*arsg)
     end
@@ -182,13 +182,13 @@ class EventPigeon
   end
 
   def message_arrived(msg)
-    # send pigeon with the message
+    # send a pigeon with the message
   end
 end
 ```
 
-Now we want to add a _pigeon_ line to our `EventDelivery`, that is we want to send pigeons when 
-we call `EventDelivery.notify(:message_arrived, "ping-ping!")`.
+Now we want to add a _pigeon_ line to our `EventDelivery,` that is we want to send pigeons when 
+we call `EventDelivery.notify(:message_arrived, "ping-pong!")`.
 
 Line class has the following API:
 
@@ -201,7 +201,7 @@ class PigeonLine < ActiveDelivery::Lines::Base
     name.gsub(/Delivery$/, "Pigeon").safe_constantize
   end
 
-  # This method should return true if sender recognizes the delivery action
+  # This method should return true if the sender recognizes the delivery action
   def notify?(delivery_action)
     # `handler_class` is available within the line instance 
     sender_class.respond_to?(delivery_action)
@@ -217,8 +217,8 @@ class PigeonLine < ActiveDelivery::Lines::Base
     PigeonService.launch pigeon
   end
 
-  # Called when we want to send message asynchronously.
-  # For example, you can use background job here.
+  # Called when we want to send a message asynchronously.
+  # For example, you can use a background job here.
   def notify_later(sender, delivery_action, *args)
     pigeon = sender.public_send(delivery_action, *args)
     # PigeonLaunchService do all the sending job
@@ -231,13 +231,13 @@ end
 You can disable automatic inference of sender classes by marking delivery as _abstract_:
 
 ```ruby
-# we don't not want to use ApplicationMailer by default, don't we?
+# we don't want to use ApplicationMailer by default, don't we?
 class ApplicationDelivery < ActiveDelivery::Base
   self.abstract_class = true
 end
 ```
 
-Final step is to register the line within your delivery class:
+The final step is to register the line within your delivery class:
 
 ```ruby
 class EventDelivery < ActiveDelivery::Base
