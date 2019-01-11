@@ -64,16 +64,19 @@ module ActiveDelivery
                          skip_after_callbacks_if_terminated: true
       end
 
-      def before_notify(method_name, on: :notify)
-        set_callback on, :before, method_name
+      def before_notify(method_or_block = nil, on: :notify)
+        method_or_block ||= Proc.new
+        set_callback on, :before, method_or_block
       end
 
-      def after_notify(method_name, on: :notify)
-        set_callback on, :after, method_name
+      def after_notify(method_or_block = nil, on: :notify)
+        method_or_block ||= Proc.new
+        set_callback on, :after, method_or_block
       end
 
-      def around_notify(method_name, on: :notify)
-        set_callback on, :around, method_name
+      def around_notify(method_or_block = nil, on: :notify)
+        method_or_block ||= Proc.new
+        set_callback on, :around, method_or_block
       end
     end
   end
