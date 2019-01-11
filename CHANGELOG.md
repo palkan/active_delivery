@@ -2,6 +2,8 @@
 
 ## master
 
+## 0.2.0 (2018-01-11)
+
 - Add `#notification_name`. ([@palkan][])
 
 - Support anonymous callbacks. ([@palkan][])
