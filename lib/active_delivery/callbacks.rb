@@ -41,7 +41,7 @@ module ActiveDelivery
     end
 
     module InstanceExt
-      def notify(*)
+      def do_notify(*)
         run_callbacks(:notify) { super }
       end
 

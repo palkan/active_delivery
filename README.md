@@ -116,6 +116,21 @@ after_notify :cleanup
 around_notify :set_context
 ```
 
+Example:
+
+```ruby
+# Let's log notifications
+class MyDelivery < ActiveDelivery::Base
+  after_notify do
+    # You can access the notificaion name within the instance
+    MyLogger.info "Delivery triggered: #{notification_name}"
+  end
+end
+
+MyDeliver.notify(:something_wicked_this_way_comes)
+#=> Delivery triggered: something_wicked_this_way_comes
+```
+
 ## Testing
 
 **NOTE:** RSpec only for the time being.

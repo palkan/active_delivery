@@ -257,5 +257,30 @@ describe ActiveDelivery::Base do
       expect(quack_class.calls).to eq([])
       expect(quackkk_class.calls).to eq(["do_do_something"])
     end
+
+    describe "#notification_name" do
+      let(:delivery_class) do
+        DeliveryTesting.const_set(
+          "MyDelivery",
+          Class.new(described_class) do
+            class << self
+              attr_accessor :last_notification
+            end
+
+            after_notify do
+              self.class.last_notification = notification_name
+            end
+          end
+        )
+      end
+
+      specify do
+        delivery_class.with(id: 10).notify(:do_something)
+        expect(delivery_class.last_notification).to eq :do_something
+
+        delivery_class.with(id: 10).notify(:do_anything)
+        expect(delivery_class.last_notification).to eq :do_anything
+      end
+    end
   end
 end
