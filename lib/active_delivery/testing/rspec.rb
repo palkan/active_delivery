@@ -93,7 +93,7 @@ module ActiveDelivery
         msg << " :#{event} notification" if event
         msg << " via #{delivery_class}#{sync_value ? " (sync)" : ""} with:"
         msg << "\n - params: #{params_description(params)}" if params
-        msg << "\n - args: #{args.present? ? args : "<none>"}"
+        msg << "\n - args: #{args.empty? ? "<none>" : args}"
         msg << "\n#{message_expectation_modifier}, but"
 
         if @unmatching_deliveries.any?
@@ -102,7 +102,7 @@ module ActiveDelivery
             msg << "\n  :#{event} via #{delivery.class}" \
                   "#{options[:sync] ? " (sync)" : ""}" \
                   " with:" \
-                  "\n   - params: #{delivery.params.present? ? delivery.params.to_s : "<none>"}" \
+                  "\n   - params: #{delivery.params.empty? ? "<none>" : delivery.params.to_s}" \
                   "\n   - args: #{args}"
           end
         else
