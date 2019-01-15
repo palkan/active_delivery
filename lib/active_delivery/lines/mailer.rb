@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+if ActionMailer::VERSION::MAJOR < 5
+  require "active_delivery/action_mailer/parameterized"
+end
+
 module ActiveDelivery
   module Lines
     class Mailer < Base

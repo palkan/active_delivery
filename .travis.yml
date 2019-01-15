@@ -1,19 +1,24 @@
 sudo: false
 language: ruby
-rvm:
-  - 2.5.1
+cache: bundler
 
 notifications:
   email: false
+
+before_install:
+  - gem update --system
+  - gem install bundler -v '< 2'
 
 matrix:
   fast_finish: true
   include:
     - rvm: ruby-head
       gemfile: gemfiles/railsmaster.gemfile
-    - rvm: 2.5.1
+    - rvm: 2.5.3
       gemfile: Gemfile
-    - rvm: 2.5.1
+    - rvm: 2.6.0
+      gemfile: Gemfile
+    - rvm: 2.5.3
       gemfile: Gemfile
       env:
         - NO_RAILS=1
