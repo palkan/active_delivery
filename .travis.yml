@@ -24,7 +24,7 @@ matrix:
         - NO_RAILS=1
     - rvm: 2.4.3
       gemfile: Gemfile
-    - rvm: 2.3.1
+    - rvm: 2.4.3
       gemfile: gemfiles/rails42.gemfile
   allow_failures:
     - rvm: ruby-head

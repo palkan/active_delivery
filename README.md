@@ -5,11 +5,13 @@
 
 Framework providing an entry point (single _interface_) for all types of notifications: mailers, push notifications, whatever you want.
 
+📖 Read the introduction post: ["Crafting user notifications in Rails with Active Delivery"](https://dev.to/evilmartians/crafting-user-notifications-in-rails-with-active-delivery-5cn6")
+
 <a href="https://evilmartians.com/?utm_source=action_policy">
 <img src="https://evilmartians.com/badges/sponsored-by-evil-martians.svg" alt="Sponsored by Evil Martians" width="236" height="54"></a>
 
 Requirements:
-- Ruby ~> 2.3
+- Ruby ~> 2.4
 
 **NOTE**: although most of the examples in this readme are Rails-specific, this gem could be used without Rails/ActiveSupport.
 

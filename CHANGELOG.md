@@ -2,6 +2,10 @@
 
 ## master
 
+## 0.2.1 (2018-01-15)
+
+- Backport `ActionMailer::Paremeterized` for Rails <5. ([@palkan][])
+
 ## 0.2.0 (2018-01-11)
 
 - Add `#notification_name`. ([@palkan][])

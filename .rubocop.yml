@@ -11,7 +11,9 @@ AllCops:
     - 'Gemfile'
     - 'node_modules/**/*'
     - 'vendor/**/*'
+    - 'gemfiles/**/*'
   DisplayCopNames: true
+  TargetRubyVersion: 2.4
 
 Standard/SemanticBlocks:
   Enabled: false
