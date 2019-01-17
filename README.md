@@ -190,7 +190,7 @@ class EventPigeon
 
     # delegate delivery action to the instance
     def message_arrived(*args)
-      new.message_arrived(*arsg)
+      new.message_arrived(*args)
     end
   end
 
