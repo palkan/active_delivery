@@ -17,6 +17,14 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = ">= 2.4"
 
+  spec.metadata = {
+    "bug_tracker_uri" => "http://github.com/palkan/active_delivery/issues",
+    "changelog_uri" => "https://github.com/palkan/active_delivery/blob/master/CHANGELOG.md",
+    "documentation_uri" => "http://github.com/palkan/active_delivery",
+    "homepage_uri" => "http://github.com/palkan/active_delivery",
+    "source_code_uri" => "http://github.com/palkan/active_delivery"
+  }
+
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   spec.require_paths = ["lib"]
 
