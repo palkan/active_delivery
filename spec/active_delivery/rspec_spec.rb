@@ -67,8 +67,14 @@ describe "RSpec matcher" do
         to have_delivered_to(delivery, :send_something, "data").with(id: 42)
     end
 
-    specify "no delivery" do
-      expect { true }.not_to have_delivered_to(delivery)
+    context "negatiation" do
+      specify "not_to" do
+        expect { true }.not_to have_delivered_to(delivery)
+      end
+
+      specify "have_not_delivered_to" do
+        expect { true }.to have_not_delivered_to(delivery)
+      end
     end
   end
 
