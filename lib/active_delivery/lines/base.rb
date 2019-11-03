@@ -41,7 +41,7 @@ module ActiveDelivery
         return @handler_class = nil if owner.abstract_class?
 
         @handler_class = resolve_class(owner.name) ||
-                         superclass_handler
+          superclass_handler
       end
 
       private
