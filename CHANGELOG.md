@@ -2,6 +2,8 @@
 
 ## master
 
+- Add support of :only, :except params for callbacks. ([@curpeng][])
+
 ## 0.2.1 (2018-01-15)
 
 - Backport `ActionMailer::Paremeterized` for Rails <5. ([@palkan][])
@@ -17,3 +19,4 @@
 Initial version.
 
 [@palkan]: https://github.com/palkan
+[@curpeng]: https://github.com/curpeng
