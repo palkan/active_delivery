@@ -109,8 +109,14 @@ See [Rails docs](https://api.rubyonrails.org/classes/ActionMailer/Parameterized.
 # NOTE: when `false` is returned the execution is halted
 before_notify :do_something
 
-# You can specify a notification method (to run callback only for that method)
+# You can specify a notification line (to run callback only for that line)
 before_notify :do_mail_something, on: :mailer
+
+# You can specify a notification name (to run callback only for specific notification)
+after_notify :mark_user_as_notified, only: %i[user_reminder]
+
+# if and unless options are also at your disposal
+after_notify :mark_user_as_notified, if: -> { params[:user].present? }
 
 # after_ and around_ callbacks are also supported
 after_notify :cleanup
@@ -204,7 +210,7 @@ class EventPigeon
 end
 ```
 
-Now we want to add a _pigeon_ line to our `EventDelivery,` that is we want to send pigeons when 
+Now we want to add a _pigeon_ line to our `EventDelivery,` that is we want to send pigeons when
 we call `EventDelivery.notify(:message_arrived, "ping-pong!")`.
 
 Line class has the following API:
@@ -220,7 +226,7 @@ class PigeonLine < ActiveDelivery::Lines::Base
 
   # This method should return true if the sender recognizes the delivery action
   def notify?(delivery_action)
-    # `handler_class` is available within the line instance 
+    # `handler_class` is available within the line instance
     sender_class.respond_to?(delivery_action)
   end
 
@@ -261,7 +267,7 @@ class EventDelivery < ActiveDelivery::Base
   # under the hood a new instance of PigeonLine is created
   # and used to send pigeons!
   register_line :pigeon, PigeonLine
-  
+
   # you can pass additional options to customize your line
   # (and use multiple pigeons lines with different configuration)
   #
@@ -271,7 +277,7 @@ class EventDelivery < ActiveDelivery::Base
   # pigeon MyCustomPigeon
   #
   # or define pigeon specific callbacks
-  # 
+  #
   # before_notify :ensure_pigeon_is_not_dead, on: :pigeon
 end
 ```

@@ -58,25 +58,41 @@ module ActiveDelivery
     end
 
     class_methods do
+      def _normalize_callback_options(options)
+        _normalize_callback_option(options, :only, :if)
+        _normalize_callback_option(options, :except, :unless)
+      end
+
+      def _normalize_callback_option(options, from, to)
+        if (from = options[from])
+          from_set = Array(from).map(&:to_s).to_set
+          from = proc { |c| from_set.include? c.notification_name.to_s }
+          options[to] = Array(options[to]).unshift(from)
+        end
+      end
+
       def define_line_callbacks(name)
         define_callbacks name,
                          terminator: CALLBACK_TERMINATOR,
                          skip_after_callbacks_if_terminated: true
       end
 
-      def before_notify(method_or_block = nil, on: :notify)
+      def before_notify(method_or_block = nil, on: :notify, **options)
         method_or_block ||= Proc.new
-        set_callback on, :before, method_or_block
+        _normalize_callback_options(options)
+        set_callback on, :before, method_or_block, options
       end
 
-      def after_notify(method_or_block = nil, on: :notify)
+      def after_notify(method_or_block = nil, on: :notify, **options)
         method_or_block ||= Proc.new
-        set_callback on, :after, method_or_block
+        _normalize_callback_options(options)
+        set_callback on, :after, method_or_block, options
       end
 
-      def around_notify(method_or_block = nil, on: :notify)
+      def around_notify(method_or_block = nil, on: :notify, **options)
         method_or_block ||= Proc.new
-        set_callback on, :around, method_or_block
+        _normalize_callback_options(options)
+        set_callback on, :around, method_or_block, options
       end
     end
   end

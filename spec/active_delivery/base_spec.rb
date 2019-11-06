@@ -108,8 +108,8 @@ describe ActiveDelivery::Base do
 
     describe ".notify" do
       it "calls quack_later" do
-        expect { delivery_class.notify(:do_something) }.
-          to raise_error(/do_something will be quacked later/)
+        expect { delivery_class.notify(:do_something) }
+          .to raise_error(/do_something will be quacked later/)
       end
 
       it "do nothing when line doesn't have public method" do
@@ -119,8 +119,8 @@ describe ActiveDelivery::Base do
 
     describe ".notify!" do
       it "calls quack_quack" do
-        expect { delivery_class.notify!(:do_something) }.
-          to raise_error(/Quack do_something!/)
+        expect { delivery_class.notify!(:do_something) }
+          .to raise_error(/Quack do_something!/)
       end
     end
   end
@@ -148,8 +148,8 @@ describe ActiveDelivery::Base do
     end
 
     it "calls with on line class" do
-      expect { delivery_class.with(id: 15, name: "Maldyak").notify(:do_something) }.
-        to raise_error(/do_something with 15 and Maldyak will be quacked later/)
+      expect { delivery_class.with(id: 15, name: "Maldyak").notify(:do_something) }
+        .to raise_error(/do_something with 15 and Maldyak will be quacked later/)
     end
   end
 
@@ -226,8 +226,20 @@ describe ActiveDelivery::Base do
       DeliveryTesting.const_set(
         "MyDelivery",
         Class.new(described_class) do
+          class << self
+            attr_writer :calls
+
+            def calls
+              @calls ||= []
+            end
+          end
+
           before_notify :ensure_id_positive
           before_notify :ensure_duck_present, on: :quack
+
+          after_notify :launch_fireworks, on: :quack, only: %i[do_something]
+          after_notify :feed_duck, except: %i[do_something]
+          after_notify :hug_duck, if: :happy_mood?
 
           def ensure_id_positive
             params[:id] > 0
@@ -236,14 +248,39 @@ describe ActiveDelivery::Base do
           def ensure_duck_present
             params[:duck].present?
           end
+
+          def launch_fireworks
+            self.class.calls << "launch_fireworks"
+          end
+
+          def feed_duck
+            self.class.calls << "feed_duck"
+          end
+
+          def happy_mood?
+            params[:id] == 5
+          end
+
+          def hug_duck
+            self.class.calls << "hug_duck"
+          end
         end
       )
     end
 
     specify "when callbacks pass" do
+      delivery_calls = []
       delivery_class.with(id: 15, duck: "Donald").notify(:do_something)
+      expect(delivery_class.calls).to eq(delivery_calls << "launch_fireworks")
+
       expect(quack_class.calls).to eq(["do_something"])
       expect(quackkk_class.calls).to eq(["do_do_something"])
+
+      delivery_class.with(id: 15, duck: "Donald").notify(:do_anything)
+      expect(delivery_class.calls).to eq(delivery_calls << "feed_duck")
+
+      delivery_class.with(id: 5, duck: "Donald").notify(:do_something)
+      expect(delivery_class.calls).to eq(delivery_calls + %w[launch_fireworks hug_duck])
     end
 
     specify "when both callbacks do not pass" do
