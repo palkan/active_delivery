@@ -6,6 +6,8 @@
 
 - Add negation rspec matcher: `have_not_delivered_to`. ([@StanisLove][])
 
+- Make it possible to call `notify` and `notify!` with hash argument. ([@StanisLove][])
+
 ## 0.2.1 (2018-01-15)
 
 - Backport `ActionMailer::Paremeterized` for Rails <5. ([@palkan][])
@@ -22,3 +24,4 @@ Initial version.
 
 [@palkan]: https://github.com/palkan
 [@curpeng]: https://github.com/curpeng
+[@StanisLove]: https://github.com/StanisLove

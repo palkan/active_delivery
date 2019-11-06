@@ -78,7 +78,7 @@ module ActiveDelivery
       end
     end
 
-    attr_reader :params, :notification_name
+    attr_reader :params, :notification_name, :sync
 
     def initialize(**params)
       @params = params
@@ -86,8 +86,9 @@ module ActiveDelivery
     end
 
     # Enqueues delivery (i.e. uses #deliver_later for mailers)
-    def notify(mid, *args)
+    def notify(mid, *args, **hargs)
       @notification_name = mid
+      @sync = hargs.fetch(:sync, false)
       do_notify(*args)
     end
 
@@ -99,17 +100,17 @@ module ActiveDelivery
 
     private
 
-    def do_notify(*args, sync: false)
+    def do_notify(*args)
       delivery_lines.each do |type, line|
         next if line.handler_class.nil?
         next unless line.notify?(notification_name)
 
-        notify_line(type, *args, params: params, sync: sync)
+        notify_line(type, *args)
       end
     end
 
     def notify_line(type, *args)
-      delivery_lines[type].notify(notification_name, *args)
+      delivery_lines[type].notify(notification_name, *args, params: params, sync: sync)
     end
 
     def delivery_lines

@@ -6,7 +6,7 @@ describe "ActionMailer line", skip: !defined?(ActionMailer) do
   before do
     module ::DeliveryTesting
       class TestMailer < ActionMailer::Base
-        def do_something
+        def do_something(*)
         end
 
         private
@@ -48,6 +48,20 @@ describe "ActionMailer line", skip: !defined?(ActionMailer) do
       it "do nothing when mailer doesn't have provided public method" do
         delivery_class.notify(:do_nothing)
       end
+
+      context "with arguments" do
+        it "process integer" do
+          expect(mailer_instance).to receive(:deliver_later)
+
+          delivery_class.notify(:do_something, 1)
+        end
+
+        it "process hash" do
+          expect(mailer_instance).to receive(:deliver_later)
+
+          delivery_class.notify(:do_something, {key: :value})
+        end
+      end
     end
 
     describe ".notify!" do
@@ -55,6 +69,14 @@ describe "ActionMailer line", skip: !defined?(ActionMailer) do
         expect(mailer_instance).to receive(:deliver_now)
 
         delivery_class.notify!(:do_something)
+      end
+
+      context "with arguments" do
+        it "process hash" do
+          expect(mailer_instance).to receive(:deliver_now)
+
+          delivery_class.notify!(:do_something, {key: :value})
+        end
       end
     end
   end
