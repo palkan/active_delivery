@@ -164,13 +164,23 @@ it "delivers to RSVPed members via .notify" do
 end
 ```
 
-If you want to test that no notification is delivered you can use negation:
+If you want to test that no notification is delivered you can use negation
 
 ```ruby
 specify "when event is not found" do
   expect do
     described_class.perform_now(profile.id, "123", "one_hour_before")
   end.not_to have_delivered_to(Community::EventsDelivery)
+end
+```
+
+or use matcher
+
+```ruby
+specify "when event is not found" do
+  expect do
+    described_class.perform_now(profile.id, "123", "one_hour_before")
+  end.to have_not_delivered_to(Community::EventsDelivery)
 end
 ```
 

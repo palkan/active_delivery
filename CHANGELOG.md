@@ -4,6 +4,8 @@
 
 - Add support of :only, :except params for callbacks. ([@curpeng][])
 
+- Add negation rspec matcher: `have_not_delivered_to`. ([@StanisLove][])
+
 ## 0.2.1 (2018-01-15)
 
 - Backport `ActionMailer::Paremeterized` for Rails <5. ([@palkan][])

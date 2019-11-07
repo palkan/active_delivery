@@ -154,3 +154,5 @@ RSpec.configure do |config|
     end
   end)
 end
+
+RSpec::Matchers.define_negated_matcher :have_not_delivered_to, :have_delivered_to
