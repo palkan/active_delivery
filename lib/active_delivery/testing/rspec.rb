@@ -136,7 +136,7 @@ module ActiveDelivery
     end
 
     def count_failure_message
-      diff = @matching_count - @expected_count
+      diff = @matching_count - @expected_number
       if diff.positive?
         "#{diff} extra item(s)"
       else
