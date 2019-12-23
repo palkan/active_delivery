@@ -97,14 +97,12 @@ module ActiveDelivery
         msg << "\n#{message_expectation_modifier}, but"
 
         if @unmatching_deliveries.any?
-          msg << " delivered the following notifications:"
-          @unmatching_deliveries.each do |(delivery, event, args, options)|
-            msg << "\n  :#{event} via #{delivery.class}" \
-                  "#{options[:sync] ? " (sync)" : ""}" \
-                  " with:" \
-                  "\n   - params: #{delivery.params.empty? ? "<none>" : delivery.params.to_s}" \
-                  "\n   - args: #{args}"
-          end
+          msg << " delivered the following unexpected notifications:"
+          msg << deliveries_description(@unmatching_deliveries)
+        elsif @matching_count.positive?
+          msg << " delivered #{@matching_count} matching notifications" \
+                 " (#{count_failure_message}):"
+          msg << deliveries_description(@matching_deliveries)
         else
           msg << " haven't delivered anything"
         end
@@ -134,6 +132,25 @@ module ActiveDelivery
       when :exactly then "exactly #{number_modifier}"
       when :at_most then "at most #{number_modifier}"
       when :at_least then "at least #{number_modifier}"
+      end
+    end
+
+    def count_failure_message
+      diff = @matching_count - @expected_count
+      if diff.positive?
+        "#{diff} extra item(s)"
+      else
+        "#{diff} missing item(s)"
+      end
+    end
+
+    def deliveries_description(deliveries)
+      deliveries.each.with_object(+"") do |(delivery, event, args, options), msg|
+        msg << "\n  :#{event} via #{delivery.class}" \
+              "#{options[:sync] ? " (sync)" : ""}" \
+              " with:" \
+              "\n   - params: #{delivery.params.empty? ? "<none>" : delivery.params.to_s}" \
+              "\n   - args: #{args}"
       end
     end
 
