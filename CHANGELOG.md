@@ -2,6 +2,8 @@
 
 ## master
 
+## 0.3.0 (2019-12-25)
+
 - Add support of :only, :except params for callbacks. ([@curpeng][])
 
 - Add negation rspec matcher: `have_not_delivered_to`. ([@StanisLove][])
