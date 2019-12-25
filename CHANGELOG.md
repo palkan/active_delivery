@@ -6,6 +6,8 @@
 
 - Add negation rspec matcher: `have_not_delivered_to`. ([@StanisLove][])
 
+- Improve RSpec matcher's failure message. ([@iBublik][])
+
 ## 0.2.1 (2018-01-15)
 
 - Backport `ActionMailer::Paremeterized` for Rails <5. ([@palkan][])
