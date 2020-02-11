@@ -2,13 +2,15 @@
 
 ## master
 
+- Add note about usage with Spring. ([@iBublik](https://github.com/ibublik))
+
 ## 0.3.0 (2019-12-25)
 
 - Add support of :only, :except params for callbacks. ([@curpeng][])
 
-- Add negation rspec matcher: `have_not_delivered_to`. ([@StanisLove][])
+- Add negation rspec matcher: `have_not_delivered_to`. ([@StanisLove](https://github.com/stanislove))
 
-- Improve RSpec matcher's failure message. ([@iBublik][])
+- Improve RSpec matcher's failure message. ([@iBublik](https://github.com/ibublik))
 
 ## 0.2.1 (2018-01-15)
 
