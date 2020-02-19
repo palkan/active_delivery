@@ -4,7 +4,7 @@ module ActiveDelivery
   module TestDelivery
     class << self
       def enable
-        raise ArgumentError, "block is reauired" unless block_given?
+        raise ArgumentError, "block is required" unless block_given?
         begin
           clear
           Thread.current[:active_delivery_testing] = true
@@ -45,4 +45,4 @@ end
 
 ActiveDelivery::Base.prepend ActiveDelivery::TestDelivery
 
-require "active_delivery/testing/rspec" if defined?(RSpec)
+require "active_delivery/testing/rspec" if defined?(RSpec::Core)
