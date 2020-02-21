@@ -2,7 +2,11 @@
 
 ## master
 
-- Add note about usage with Spring. ([@iBublik](https://github.com/ibublik))
+## 0.3.1 (2020-02-21)
+
+- Fixed RSpec detection. ([@palkan][])
+
+- Add note about usage with Spring. ([@iBublik][])
 
 ## 0.3.0 (2019-12-25)
 
@@ -10,7 +14,7 @@
 
 - Add negation rspec matcher: `have_not_delivered_to`. ([@StanisLove](https://github.com/stanislove))
 
-- Improve RSpec matcher's failure message. ([@iBublik](https://github.com/ibublik))
+- Improve RSpec matcher's failure message. ([@iBublik][])
 
 ## 0.2.1 (2018-01-15)
 
@@ -28,3 +32,4 @@ Initial version.
 
 [@palkan]: https://github.com/palkan
 [@curpeng]: https://github.com/curpeng
+[@iBublik]: https://github.com/ibublik
