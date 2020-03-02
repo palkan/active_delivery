@@ -14,17 +14,19 @@ matrix:
   include:
     - rvm: ruby-head
       gemfile: gemfiles/railsmaster.gemfile
-    - rvm: 2.5.3
+    - rvm: 2.5
       gemfile: Gemfile
-    - rvm: 2.6.0
+    - rvm: 2.7
       gemfile: Gemfile
-    - rvm: 2.5.3
+    - rvm: 2.6
+      gemfile: Gemfile
+    - rvm: 2.5
       gemfile: Gemfile
       env:
         - NO_RAILS=1
-    - rvm: 2.4.3
+    - rvm: 2.4
       gemfile: Gemfile
-    - rvm: 2.4.3
+    - rvm: 2.4
       gemfile: gemfiles/rails42.gemfile
   allow_failures:
     - rvm: ruby-head
