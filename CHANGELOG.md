@@ -2,6 +2,8 @@
 
 ## master
 
+- **Support Ruby 2.5+**. ([@palkan][])
+
 - Allow passing keyword arugments to `notify`. ([@palkan][])
 
 ## 0.3.1 (2020-02-21)
