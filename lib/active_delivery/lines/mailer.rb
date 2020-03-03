@@ -17,12 +17,20 @@ module ActiveDelivery
         mailer_class.action_methods.include?(method_name.to_s)
       end
 
-      def notify_now(mailer, mid, *args)
-        mailer.public_send(mid, *args).deliver_now
+      def notify_now(mailer, mid, *args, **kwargs)
+        if kwargs.empty?
+          mailer.public_send(mid, *args).deliver_now
+        else
+          mailer.public_send(mid, *args, **kwargs).deliver_now
+        end
       end
 
-      def notify_later(mailer, mid, *args)
-        mailer.public_send(mid, *args).deliver_later
+      def notify_later(mailer, mid, *args, **kwargs)
+        if kwargs.empty?
+          mailer.public_send(mid, *args).deliver_later
+        else
+          mailer.public_send(mid, *args, **kwargs).deliver_later
+        end
       end
     end
 

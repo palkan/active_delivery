@@ -2,6 +2,8 @@
 
 ## master
 
+- Allow passing keyword arugments to `notify`. ([@palkan][])
+
 ## 0.3.1 (2020-02-21)
 
 - Fixed RSpec detection. ([@palkan][])

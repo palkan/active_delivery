@@ -2,11 +2,16 @@
 
 require "spec_helper"
 
-describe "ActionMailer line", skip: !defined?(ActionMailer) do
+return unless defined?(ActionMailer)
+
+describe "ActionMailer line" do
   before do
     module ::DeliveryTesting
       class TestMailer < ActionMailer::Base
         def do_something
+        end
+
+        def do_another_thing(key:)
         end
 
         private
@@ -45,8 +50,14 @@ describe "ActionMailer line", skip: !defined?(ActionMailer) do
         delivery_class.notify(:do_something)
       end
 
-      it "do nothing when mailer doesn't have provided public method" do
-        delivery_class.notify(:do_nothing)
+      it "do nothing when mailer doesn't have provided public method", skip: (ActionMailer::VERSION::MAJOR < 6) do
+        delivery_class.notify(:do_another_thing, key: :test)
+      end
+
+      it "supports kwargs" do
+        expect(mailer_instance).to receive(:deliver_later)
+
+        delivery_class.notify(:do_something)
       end
     end
 

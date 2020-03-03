@@ -243,17 +243,17 @@ class PigeonLine < ActiveDelivery::Lines::Base
   # Called when we want to send message synchronously
   # `sender` here either `sender_class` or `sender_class.with(params)`
   # if params passed.
-  def notify_now(sender, delivery_action, *args)
+  def notify_now(sender, delivery_action, *args, **kwargs)
     # For example, our EventPigeon class returns some `Pigeon` object
-    pigeon = sender.public_send(delivery_action, *args)
+    pigeon = sender.public_send(delivery_action, *args, **kwargs)
     # PigeonLaunchService do all the sending job
     PigeonService.launch pigeon
   end
 
   # Called when we want to send a message asynchronously.
   # For example, you can use a background job here.
-  def notify_later(sender, delivery_action, *args)
-    pigeon = sender.public_send(delivery_action, *args)
+  def notify_later(sender, delivery_action, *args, **kwargs)
+    pigeon = sender.public_send(delivery_action, *args, **kwargs)
     # PigeonLaunchService do all the sending job
     PigeonLaunchJob.perform_later pigeon
   end

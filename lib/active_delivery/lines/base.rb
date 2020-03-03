@@ -24,15 +24,15 @@ module ActiveDelivery
         handler_class.respond_to?(method_name)
       end
 
-      def notify_now(handler, mid, *args)
+      def notify_now(handler, mid, *args, **kwargs)
       end
 
-      def notify_later(handler, mid, *args)
+      def notify_later(handler, mid, *args, **kwargs)
       end
 
-      def notify(mid, *args, params:, sync:)
-        clazz = params.empty? ? handler_class : handler_class.with(params)
-        sync ? notify_now(clazz, mid, *args) : notify_later(clazz, mid, *args)
+      def notify(mid, *args, params:, sync:, **kwargs)
+        clazz = params.empty? ? handler_class : handler_class.with(**params)
+        sync ? notify_now(clazz, mid, *args, **kwargs) : notify_later(clazz, mid, *args, **kwargs)
       end
 
       def handler_class

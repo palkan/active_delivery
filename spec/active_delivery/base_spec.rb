@@ -10,12 +10,20 @@ describe ActiveDelivery::Base do
         ::DeliveryTesting.const_get(name.gsub(/Delivery$/, options.fetch(:suffix, "Quack"))) rescue nil
       end
 
-      def notify_now(handler, mid, *args)
-        handler.public_send(mid, *args).quack_quack
+      def notify_now(handler, mid, *args, **kwargs)
+        if kwargs.empty?
+          handler.public_send(mid, *args).quack_quack
+        else
+          handler.public_send(mid, *args, **kwargs).quack_quack
+        end
       end
 
-      def notify_later(handler, mid, *args)
-        handler.public_send(mid, *args).quack_later
+      def notify_later(handler, mid, *args, **kwargs)
+        if kwargs.empty?
+          handler.public_send(mid, *args).quack_later
+        else
+          handler.public_send(mid, *args, **kwargs).quack_later
+        end
       end
     end
 
@@ -97,6 +105,10 @@ describe ActiveDelivery::Base do
               Quack.new "do_something"
             end
 
+            def do_another_thing(word:)
+              Quack.new word
+            end
+
             private
 
             def do_nothing
@@ -115,12 +127,22 @@ describe ActiveDelivery::Base do
       it "do nothing when line doesn't have public method" do
         delivery_class.notify(:do_nothing)
       end
+
+      it "supports kwargs" do
+        expect { delivery_class.notify(:do_another_thing, word: "krya") }
+          .to raise_error(/krya will be quacked later/)
+      end
     end
 
     describe ".notify!" do
       it "calls quack_quack" do
         expect { delivery_class.notify!(:do_something) }
           .to raise_error(/Quack do_something!/)
+      end
+
+      it "supports kwargs" do
+        expect { delivery_class.notify!(:do_another_thing, word: "krya") }
+          .to raise_error(/Quack krya!/)
       end
     end
   end

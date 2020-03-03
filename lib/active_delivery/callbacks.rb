@@ -41,17 +41,17 @@ module ActiveDelivery
     end
 
     module InstanceExt
-      def do_notify(*)
-        run_callbacks(:notify) { super }
+      def do_notify(*args, **kwargs)
+        run_callbacks(:notify) { super(*args, **kwargs) }
       end
 
-      def notify_line(type, *)
-        run_callbacks(type) { super }
+      def notify_line(*args, **kwargs)
+        run_callbacks(args.first) { super(*args, **kwargs) }
       end
     end
 
     module SingltonExt
-      def register_line(line_id, *args)
+      def register_line(line_id, *args, **kwargs)
         super
         define_line_callbacks line_id
       end

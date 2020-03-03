@@ -37,8 +37,8 @@ module ActiveDelivery
       alias with new
 
       # Enqueues delivery (i.e. uses #deliver_later for mailers)
-      def notify(*args)
-        new.notify(*args)
+      def notify(*args, **kwargs)
+        new.notify(*args, **kwargs)
       end
 
       # The same as .notify but delivers synchronously
@@ -86,9 +86,9 @@ module ActiveDelivery
     end
 
     # Enqueues delivery (i.e. uses #deliver_later for mailers)
-    def notify(mid, *args)
+    def notify(mid, *args, **kwargs)
       @notification_name = mid
-      do_notify(*args)
+      do_notify(*args, **kwargs)
     end
 
     # The same as .notify but delivers synchronously
@@ -99,17 +99,17 @@ module ActiveDelivery
 
     private
 
-    def do_notify(*args, sync: false)
+    def do_notify(*args, sync: false, **kwargs)
       delivery_lines.each do |type, line|
         next if line.handler_class.nil?
         next unless line.notify?(notification_name)
 
-        notify_line(type, *args, params: params, sync: sync)
+        notify_line(type, *args, params: params, sync: sync, **kwargs)
       end
     end
 
-    def notify_line(type, *args)
-      delivery_lines[type].notify(notification_name, *args)
+    def notify_line(type, *args, **kwargs)
+      delivery_lines[type].notify(notification_name, *args, **kwargs)
     end
 
     def delivery_lines

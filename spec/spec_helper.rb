@@ -4,7 +4,12 @@ ENV["RACK_ENV"] = "test"
 
 require "bundler/setup"
 
-require "action_mailer" unless ENV["NO_RAILS"]
+unless ENV["NO_RAILS"]
+  require "action_mailer"
+  require "active_job"
+  ActiveJob::Base.queue_adapter = :test
+  ActiveJob::Base.logger = Logger.new(IO::NULL)
+end
 
 require "active_delivery"
 
