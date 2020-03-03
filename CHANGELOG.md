@@ -2,7 +2,9 @@
 
 ## master
 
-- **Support Ruby 2.5+**. ([@palkan][])
+## 0.4.0 (2020-03-02)
+
+- **Drop Ruby 2.4 support**. ([@palkan][])
 
 - Allow passing keyword arugments to `notify`. ([@palkan][])
 
