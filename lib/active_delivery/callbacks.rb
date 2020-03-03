@@ -73,8 +73,8 @@ module ActiveDelivery
 
       def define_line_callbacks(name)
         define_callbacks name,
-                         terminator: CALLBACK_TERMINATOR,
-                         skip_after_callbacks_if_terminated: true
+          terminator: CALLBACK_TERMINATOR,
+          skip_after_callbacks_if_terminated: true
       end
 
       def before_notify(method_or_block = nil, on: :notify, **options, &block)
