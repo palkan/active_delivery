@@ -114,4 +114,18 @@ describe "RSpec matcher" do
       end.to raise_error(RSpec::Expectations::ExpectationNotMetError)
     end
   end
+
+  context "fibers" do
+    specify "success" do
+      expect { Fiber.new { delivery.notify(:send_something, "data", 42) }.resume }
+        .to have_delivered_to(delivery)
+    end
+
+    specify "failure" do
+      expect do
+        expect { Fiber.new { delivery.notify(:send_something) }.resume }
+          .to have_delivered_to(delivery, :send_smth)
+      end.to raise_error(RSpec::Expectations::ExpectationNotMetError)
+    end
+  end
 end
