@@ -7,15 +7,15 @@ module ActiveDelivery
         raise ArgumentError, "block is required" unless block_given?
         begin
           clear
-          Thread.current[:active_delivery_testing] = true
+          Thread.current.thread_variable_set(:active_delivery_testing, true)
           yield
         ensure
-          Thread.current[:active_delivery_testing] = false
+          Thread.current.thread_variable_set(:active_delivery_testing, false)
         end
       end
 
       def enabled?
-        Thread.current[:active_delivery_testing] == true
+        Thread.current.thread_variable_get(:active_delivery_testing) == true
       end
 
       def track(delivery, event, args, options)
