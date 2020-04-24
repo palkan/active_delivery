@@ -20,7 +20,11 @@ describe "ActionMailer line" do
         end
       end
 
+      class CustomMailer < ActionMailer::Base
+      end
+
       class TestDelivery < ActiveDelivery::Base
+        register_line :custom_mailer, ActiveDelivery::Lines::Mailer, resolver: ->(name) { CustomMailer }
       end
     end
   end
@@ -31,10 +35,17 @@ describe "ActionMailer line" do
 
   let(:delivery_class) { ::DeliveryTesting::TestDelivery }
   let(:mailer_class) { ::DeliveryTesting::TestMailer }
+  let(:custom_mailer_class) { ::DeliveryTesting::CustomMailer }
 
   describe ".mailer_class" do
     it "infers mailer from delivery name" do
       expect(delivery_class.mailer_class).to be_eql(mailer_class)
+    end
+  end
+
+  describe ".custom_mailer_class" do
+    it "infers mailer from resolver" do
+      expect(delivery_class.custom_mailer_class).to be_eql(custom_mailer_class)
     end
   end
 

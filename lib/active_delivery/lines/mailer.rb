@@ -9,9 +9,7 @@ module ActiveDelivery
     class Mailer < Base
       alias mailer_class handler_class
 
-      def resolve_class(name)
-        name.gsub(/Delivery$/, "Mailer").safe_constantize
-      end
+      DEFAULT_RESOLVER = ->(name) { name.gsub(/Delivery$/, "Mailer").safe_constantize }
 
       def notify?(method_name)
         mailer_class.action_methods.include?(method_name.to_s)
@@ -34,6 +32,6 @@ module ActiveDelivery
       end
     end
 
-    ActiveDelivery::Base.register_line :mailer, Mailer
+    ActiveDelivery::Base.register_line :mailer, Mailer, resolver: Mailer::DEFAULT_RESOLVER
   end
 end
