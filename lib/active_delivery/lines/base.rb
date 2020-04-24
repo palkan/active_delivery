@@ -7,10 +7,13 @@ module ActiveDelivery
       attr_accessor :owner
       attr_writer :handler_class
 
+      DEFAULT_RESOLVER = ->(name) { name.gsub(/Delivery$/, "Notifier").safe_constantize }
+
       def initialize(id:, owner:, **options)
         @id = id
         @owner = owner
         @options = options.tap(&:freeze)
+        @resolver = options[:resolver]
       end
 
       def dup_for(new_owner)
@@ -18,6 +21,7 @@ module ActiveDelivery
       end
 
       def resolve_class(name)
+        resolver&.call(name)
       end
 
       def notify?(method_name)
@@ -54,6 +58,8 @@ module ActiveDelivery
 
         owner.superclass.public_send(handler_method)
       end
+
+      attr_reader :resolver
     end
   end
 end
