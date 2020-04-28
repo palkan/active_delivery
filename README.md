@@ -84,6 +84,14 @@ PostsNotifier.published(user, post).notify_later
 
 P.S. Naming ("delivery") is inspired by Basecamp: https://www.youtube.com/watch?v=m1jOWu7woKM.
 
+**NOTE**: You could specify Mailer class explicitly or by custom pattern, using resolver:
+
+```ruby
+class PostsDelivery < ActiveDelivery::Base
+  register_line :custom_mailer, ActiveDelivery::Lines::Mailer, resolver: ->(name) { CustomMailer }
+end
+```
+
 Delivery also supports _parameterized_ calling:
 
 ```ruby

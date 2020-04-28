@@ -2,6 +2,8 @@
 
 ## master
 
+- Allow resolve mailer class with custom pattern ([@brovikov][])
+
 ## 0.4.1 (2020-04-22)
 
 - Fixed TestDelivery fiber support. ([@pauldub](https://github.com/pauldub))
