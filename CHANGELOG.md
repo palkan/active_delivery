@@ -2,6 +2,8 @@
 
 ## master
 
+## 0.4.2 (2020-04-28)
+
 - Allow resolve mailer class with custom pattern ([@brovikov][])
 
 ## 0.4.1 (2020-04-22)
@@ -45,3 +47,4 @@ Initial version.
 [@palkan]: https://github.com/palkan
 [@curpeng]: https://github.com/curpeng
 [@iBublik]: https://github.com/ibublik
+[@brovikov]: https://github.com/brovikov
