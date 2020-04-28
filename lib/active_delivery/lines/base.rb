@@ -7,8 +7,6 @@ module ActiveDelivery
       attr_accessor :owner
       attr_writer :handler_class
 
-      DEFAULT_RESOLVER = ->(name) { name.gsub(/Delivery$/, "Notifier").safe_constantize }
-
       def initialize(id:, owner:, **options)
         @id = id
         @owner = owner
