@@ -43,6 +43,8 @@ module ActionMailer
     class MessageDelivery < ActionMailer::MessageDelivery # :nodoc:
       def initialize(mailer_class, action, params, *args)
         super(mailer_class, action, *args)
+        @mailer ||= mailer_class
+        @mail_method ||= action
         @params = params
       end
 
@@ -57,10 +59,14 @@ module ActionMailer
       private
 
       def processed_mailer
-        @processed_mailer ||= @mailer.send(:new, nil, *@args).tap do |m|
+        @processed_mailer ||= @mailer.send(*mailer_args).tap do |m|
           m.params = @params
           m.process @mail_method, *@args
         end
+      end
+
+      def mailer_args
+        ActionMailer::VERSION::MAJOR < 5 ? [:new, nil, *@args] : [:new]
       end
 
       def enqueue_delivery(delivery_method, options = {})

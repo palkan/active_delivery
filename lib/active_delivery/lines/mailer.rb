@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-if ActionMailer::VERSION::MAJOR < 5
+if ActionMailer::VERSION::MAJOR < 5 || (ActionMailer::VERSION::MAJOR == 5 && ActionMailer::VERSION::MINOR < 2)
   require "active_delivery/action_mailer/parameterized"
 end
 
