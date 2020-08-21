@@ -49,6 +49,16 @@ describe "ActionMailer line" do
     end
   end
 
+  describe ".with" do
+    it "doesn't raises error" do
+      expect { delivery_class.with(test_param: true).notify(:do_something) }.not_to raise_error
+    end
+
+    it "sets params" do
+      expect(delivery_class.with(test_param: true).params).to eq(test_param: true)
+    end
+  end
+
   describe ".notify" do
     let(:mailer_instance) { double("mailer") }
 
