@@ -1,5 +1,6 @@
 [![Gem Version](https://badge.fury.io/rb/active_delivery.svg)](https://badge.fury.io/rb/active_delivery)
-[![Build Status](https://travis-ci.org/palkan/active_delivery.svg?branch=master)](https://travis-ci.org/palkan/active_delivery)
+![Build](https://github.com/palkan/active_delivery/workflows/Build/badge.svg)
+![JRuby Build](https://github.com/palkan/active_delivery/workflows/JRuby%20Build/badge.svg)
 
 # Active Delivery
 
@@ -11,7 +12,8 @@ Framework providing an entry point (single _interface_) for all types of notific
 <img src="https://evilmartians.com/badges/sponsored-by-evil-martians.svg" alt="Sponsored by Evil Martians" width="236" height="54"></a>
 
 Requirements:
-- Ruby ~> 2.4
+
+- Ruby ~> 2.5
 
 **NOTE**: although most of the examples in this readme are Rails-specific, this gem could be used without Rails/ActiveSupport.
 
@@ -28,7 +30,8 @@ Here comes _Active Delivery_.
 In the simplest case when we have only mailers Active Delivery is just a wrapper for Mailer with (possibly) some additional logic provided (e.g., preventing emails to unsubscribed users).
 
 Motivations behind Active Delivery:
-- organize notifications related logic:
+
+- Organize notifications related logic:
 
 ```ruby
 # Before
@@ -43,20 +46,20 @@ def after_some_action
 end
 ```
 
-- better testability (see [Testing](#testing)).
+- Better testability (see [Testing](#testing)).
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'active_delivery'
+gem "active_delivery"
 ```
 
 And then execute:
 
 ```sh
-$ bundle
+bundle
 ```
 
 ## Usage
@@ -95,12 +98,12 @@ end
 Delivery also supports _parameterized_ calling:
 
 ```ruby
-   PostsDelivery.with(user: user).notify(:published, post)
+PostsDelivery.with(user: user).notify(:published, post)
 ```
 
 The parameters could be accessed through the `params` instance method (e.g., to implement guard-like logic).
 
-**NOTE**: When params are presents the parametrized mailer is used, i.e.:
+**NOTE**: When params are presents the parameterized mailer is used, i.e.:
 
 ```ruby
 PostsMailer.with(user: user).published(post)
@@ -157,14 +160,15 @@ Active Delivery provides an elegant way to test deliveries in your code (i.e., w
 it "delivers notification" do
   expect { subject }.to have_delivered_to(Community::EventsDelivery, :modified, event)
     .with(profile: profile)
+end
 ```
 
 You can also use such RSpec features as [compound expectations](https://relishapp.com/rspec/rspec-expectations/docs/compound-expectations) and [composed matchers](https://relishapp.com/rspec/rspec-expectations/v/3-8/docs/composing-matchers):
 
 ```ruby
 it "delivers to RSVPed members via .notify" do
-  expect { subject }.
-    to have_delivered_to(Community::EventsDelivery, :canceled, an_instance_of(event)).with(
+  expect { subject }
+    .to have_delivered_to(Community::EventsDelivery, :canceled, an_instance_of(event)).with(
       a_hash_including(profile: another_profile)
     ).and have_delivered_to(Community::EventsDelivery, :canceled, event).with(
       profile: profile
@@ -234,7 +238,6 @@ we call `EventDelivery.notify(:message_arrived, "ping-pong!")`.
 Line class has the following API:
 
 ```ruby
-
 class PigeonLine < ActiveDelivery::Lines::Base
   # This method is used to infer sender class
   # `name` is the name of the delivery class
