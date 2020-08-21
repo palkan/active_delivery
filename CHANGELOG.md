@@ -14,7 +14,7 @@
 
 - **Drop Ruby 2.4 support**. ([@palkan][])
 
-- Allow passing keyword arugments to `notify`. ([@palkan][])
+- Allow passing keyword arguments to `notify`. ([@palkan][])
 
 ## 0.3.1 (2020-02-21)
 
