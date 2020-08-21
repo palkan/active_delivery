@@ -2,6 +2,10 @@
 
 ## master
 
+## 0.4.3 (2020-08-21)
+
+- Fix parameterized mailers support in Rails >= 5.0, <5.2 ([@dmitryzuev][])
+
 ## 0.4.2 (2020-04-28)
 
 - Allow resolve mailer class with custom pattern ([@brovikov][])
@@ -48,3 +52,4 @@ Initial version.
 [@curpeng]: https://github.com/curpeng
 [@iBublik]: https://github.com/ibublik
 [@brovikov]: https://github.com/brovikov
+[@dmitryzuev]: https://github.com/dmitryzuev
