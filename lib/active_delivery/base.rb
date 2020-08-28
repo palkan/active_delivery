@@ -73,6 +73,10 @@ module ActiveDelivery
         CODE
       end
 
+      def unregister_line(line_id)
+        delivery_lines.delete(line_id)
+      end
+
       def abstract_class?
         abstract_class == true
       end

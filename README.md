@@ -303,6 +303,15 @@ class EventDelivery < ActiveDelivery::Base
 end
 ```
 
+You can also _unregister_ a line.  For example, when subclassing another `Delivery` class or to remove any of the automatically added lines (e.g., `mailer`):
+
+```ruby
+class NonMailerDelivery < ActiveDelivery::Base
+  # Use unregister_line to remove any default or inherited lines
+  unregister_line :mailer
+end
+```
+
 ## Related projects
 
 - [`abstract_notifier`](https://github.com/palkan/abstract_notifier) – Action Mailer-like interface for text-based notifications.

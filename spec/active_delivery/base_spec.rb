@@ -147,6 +147,20 @@ describe ActiveDelivery::Base do
     end
   end
 
+  describe ".unregister_line" do
+    it "removes the line indicated by the line_id argument" do
+      expect(delivery_class.delivery_lines.keys).to include(:quack_quack)
+
+      delivery_class.unregister_line :quack_quack
+
+      expect(delivery_class.delivery_lines.keys).not_to include(:quack_quack)
+    end
+
+    it "does not raise an error if the line does not exist" do
+      expect { delivery_class.unregister_line(:what_does_the_fox_say) }.not_to raise_error
+    end
+  end
+
   describe ".with" do
     let!(:quack_class) do
       DeliveryTesting.const_set(
