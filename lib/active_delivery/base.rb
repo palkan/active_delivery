@@ -74,7 +74,12 @@ module ActiveDelivery
       end
 
       def unregister_line(line_id)
-        delivery_lines.delete(line_id)
+        removed_line = delivery_lines.delete(line_id)
+
+        return if removed_line.nil?
+
+        singleton_class.undef_method line_id
+        singleton_class.undef_method "#{line_id}_class"
       end
 
       def abstract_class?

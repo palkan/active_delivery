@@ -2,8 +2,6 @@
 
 ## master
 
-## 0.4.4 (2020-08-28)
-
 - Added `ActiveDelivery::Base.unregister_line` ([@thornomad][])
 
 ## 0.4.3 (2020-08-21)

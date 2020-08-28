@@ -159,6 +159,23 @@ describe ActiveDelivery::Base do
     it "does not raise an error if the line does not exist" do
       expect { delivery_class.unregister_line(:what_does_the_fox_say) }.not_to raise_error
     end
+
+    context "when unregister_line on the class that registered the line the first time" do
+      it "unsets the <line>_class method" do
+        delivery_class = DeliveryTesting.const_set("MyDelivery", Class.new(described_class))
+
+        expect(delivery_class.respond_to?(:quack_quack_class)).to be true
+        expect(delivery_class.respond_to?(:quack_quack)).to be true
+
+        delivery_class.unregister_line :quack_quack
+
+        expect(delivery_class.respond_to?(:quack_quack_class)).to be false
+        expect(delivery_class.respond_to?(:quack_quack)).to be false
+
+        expect(ActiveDelivery::Base.respond_to?(:quack_quack_class)).to be true
+        expect(ActiveDelivery::Base.respond_to?(:quack_quack)).to be true
+      end
+    end
   end
 
   describe ".with" do
