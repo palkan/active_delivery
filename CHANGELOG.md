@@ -2,6 +2,8 @@
 
 ## master
 
+- Added `ActiveDelivery::Base.unregister_line` ([@thornomad][])
+
 ## 0.4.3 (2020-08-21)
 
 - Fix parameterized mailers support in Rails >= 5.0, <5.2 ([@dmitryzuev][])
@@ -53,3 +55,4 @@ Initial version.
 [@iBublik]: https://github.com/ibublik
 [@brovikov]: https://github.com/brovikov
 [@dmitryzuev]: https://github.com/dmitryzuev
+[@thornomad]: https://github.com/thornomad
