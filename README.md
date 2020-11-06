@@ -271,6 +271,49 @@ class PigeonLine < ActiveDelivery::Lines::Base
 end
 ```
 
+In case of parameterized calling, some update needs to be done on the new Line. Here is an example:
+
+```ruby
+class EventPigeon
+  attr_reader :params
+
+  class << self
+    # Add `.with`  method as an alias
+    alias with new
+
+    # delegate delivery action to the instance
+    def message_arrived(*args)
+      new.message_arrived(*args)
+    end
+  end
+
+  def initialize(params = {})
+    @params = params
+    # do smth with params
+  end
+
+  def message_arrived(msg)
+    # send a pigeon with the message
+  end
+end
+
+class PigeonLine < ActiveDelivery::Lines::Base
+  def notify_later(sender, delivery_action, *args, **kwargs)
+    # `to_s` is important for serialization. Unless you might have error
+    PigeonLaunchJob.perform_later sender.class.to_s, delivery_action, *args, **kwargs.merge(params: line.params)
+  end
+end
+
+class PigeonLaunchJob < ActiveJob::Base
+  def perform(sender, delivery_action, *args, params: nil, **kwargs)
+    klass = sender.safe_constantize
+    handler = params ? klass.with(**params) : klass.new
+
+    handler.public_send(delivery_action, *args, **kwargs)
+  end
+end
+```
+
 **NOTE**: we fallback to superclass's sender class if `resolve_class` returns nil.
 You can disable automatic inference of sender classes by marking delivery as _abstract_:
 
