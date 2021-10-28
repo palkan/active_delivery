@@ -8,7 +8,7 @@ module ActiveDelivery
   # Add callbacks support to Active Delivery (requires ActiveSupport::Callbacks)
   #
   #   # Run method before delivering notification
-  #   # NOTE: when `false` is returned the executation is halted
+  #   # NOTE: when `false` is returned the execution is halted
   #   before_notify :do_something
   #
   #   # You can specify a notification method (to run callback only for that method)

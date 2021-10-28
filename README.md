@@ -141,7 +141,7 @@ Example:
 # Let's log notifications
 class MyDelivery < ActiveDelivery::Base
   after_notify do
-    # You can access the notificaion name within the instance
+    # You can access the notification name within the instance
     MyLogger.info "Delivery triggered: #{notification_name}"
   end
 end
