@@ -196,6 +196,57 @@ specify "when event is not found" do
 end
 ```
 
+To test line used (email, push, pigeon), you can the following shared examples:
+
+```ruby
+##
+# Line checker for `active_delivery`
+#
+# ==== Attributes
+#
+# * +lines+ - Array of possible lines (:mailer, :pusher, :pigeon..)
+# * +methods+ - methods called on each line
+shared_examples_for "deliverable" do |lines, methods|
+  it "calls correct lines and methods" do
+    lines.each do |line|
+      methods.each do |method|
+        expect(described_class.delivery_lines[line]).to receive(:notify).with(method, anything).once
+        subject
+      end
+    end
+  end
+end
+
+##
+# Line non-checker for `active_delivery`
+#
+# ==== Attributes
+#
+# * +lines+ - Array of possible lines (:mailer, :pusher)
+# * +methods+ - methods called on each line
+shared_examples_for "not_deliverable" do |lines, methods|
+  it "calls correct lines and methods" do
+    lines.each do |line|
+      methods.each do |method|
+        expect(described_class.delivery_lines[line]).not_to receive(:notify).with(method, anything)
+        subject
+      end
+    end
+  end
+end
+```
+
+and call them like that:
+
+```ruby
+RSpec.describe V1::MyDelivery do
+  context "when..." do
+    it_behaves_like "deliverable", [:mailer], [:some_action]
+    it_behaves_like "not_deliverable", [:pusher], [:some_action]
+  end
+end
+```
+
 **NOTE:** test mode activated automatically if `RAILS_ENV` or `RACK_ENV` env variable is equal to "test". Otherwise add `require "active_delivery/testing/rspec"` to your `spec_helper.rb` / `rails_helper.rb` manually. This is also required if you're using Spring in test environment (e.g. with help of [spring-commands-rspec](https://github.com/jonleighton/spring-commands-rspec)).
 
 ## Custom "lines"
