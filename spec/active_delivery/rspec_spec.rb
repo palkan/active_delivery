@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "spec_helper"
-
 # rubocop:disable Lint/ConstantDefinitionInBlock
 describe "RSpec matcher" do
   before(:all) do
@@ -14,8 +12,8 @@ describe "RSpec matcher" do
         class << self
           alias_method :with, :new
 
-          def send_something(*args)
-            new.send_something(*args)
+          def send_something(...)
+            new.send_something(...)
           end
         end
 

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "spec_helper"
-
 # rubocop:disable Lint/ConstantDefinitionInBlock
 describe ActiveDelivery::Base do
   before(:all) do
@@ -11,20 +9,12 @@ describe ActiveDelivery::Base do
       rescue
       end
 
-      def notify_now(handler, mid, *args, **kwargs)
-        if kwargs.empty?
-          handler.public_send(mid, *args).quack_quack
-        else
-          handler.public_send(mid, *args, **kwargs).quack_quack
-        end
+      def notify_now(handler, ...)
+        handler.public_send(...).quack_quack
       end
 
-      def notify_later(handler, mid, *args, **kwargs)
-        if kwargs.empty?
-          handler.public_send(mid, *args).quack_later
-        else
-          handler.public_send(mid, *args, **kwargs).quack_later
-        end
+      def notify_later(handler, ...)
+        handler.public_send(...).quack_later
       end
     end
 
@@ -295,13 +285,9 @@ describe ActiveDelivery::Base do
           after_notify :feed_duck, except: %i[do_something]
           after_notify :hug_duck, if: :happy_mood?
 
-          def ensure_id_positive
-            params[:id] > 0
-          end
+          def ensure_id_positive = params[:id] > 0
 
-          def ensure_duck_present
-            params[:duck].present?
-          end
+          def ensure_duck_present = params[:duck].present?
 
           def launch_fireworks
             self.class.calls << "launch_fireworks"
@@ -311,9 +297,7 @@ describe ActiveDelivery::Base do
             self.class.calls << "feed_duck"
           end
 
-          def happy_mood?
-            params[:id] == 5
-          end
+          def happy_mood? = params[:id] == 5
 
           def hug_duck
             self.class.calls << "hug_duck"

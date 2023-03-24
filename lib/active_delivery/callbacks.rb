@@ -26,11 +26,7 @@ module ActiveDelivery
 
     include ActiveSupport::Callbacks
 
-    CALLBACK_TERMINATOR = if ::ActiveSupport::VERSION::MAJOR >= 5
-      ->(_target, result) { result.call == false }
-    else
-      ->(_target, result) { result == false }
-    end
+    CALLBACK_TERMINATOR = ->(_target, result) { result.call == false }
 
     included do
       # Define "global" callbacks
@@ -41,17 +37,17 @@ module ActiveDelivery
     end
 
     module InstanceExt
-      def do_notify(*args, **kwargs)
-        run_callbacks(:notify) { super(*args, **kwargs) }
+      def do_notify(...)
+        run_callbacks(:notify) { super(...) }
       end
 
-      def notify_line(*args, **kwargs)
-        run_callbacks(args.first) { super(*args, **kwargs) }
+      def notify_line(kind, ...)
+        run_callbacks(kind) { super(kind, ...) }
       end
     end
 
     module SingltonExt
-      def register_line(line_id, *args, **kwargs)
+      def register_line(line_id, ...)
         super
         define_line_callbacks line_id
       end

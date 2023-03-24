@@ -17,4 +17,15 @@ rescue LoadError
   task("rubocop:md") {}
 end
 
-task default: %w[rubocop rubocop:md spec]
+desc "Run Ruby Next nextify"
+task :nextify do
+  sh "bundle exec ruby-next nextify -V"
+end
+
+desc "Run acceptance specs without Rails"
+RSpec::Core::RakeTask.new("spec:norails") do |task|
+  ENV["NORAILS"] = "1"
+  task.verbose = false
+end
+
+task default: %w[rubocop rubocop:md spec spec:norails]

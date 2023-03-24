@@ -1,0 +1,28 @@
+name: JRuby Build
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+
+jobs:
+  rspec:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_JOBS: 4
+      BUNDLE_RETRY: 3
+      BUNDLE_GEMFILE: gemfiles/jruby.gemfile
+      CI: true
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: jruby
+        bundler-cache: true
+    - name: Ruby Ruby Next
+      run: |
+        bundle exec ruby-next nextify -V
+    - name: Run RSpec
+      run: |
+        bundle exec rspec

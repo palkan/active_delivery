@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "spec_helper"
-
 return unless defined?(ActionMailer)
 
 # rubocop:disable Lint/ConstantDefinitionInBlock

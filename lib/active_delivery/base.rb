@@ -37,8 +37,8 @@ module ActiveDelivery
       alias_method :with, :new
 
       # Enqueues delivery (i.e. uses #deliver_later for mailers)
-      def notify(*args, **kwargs)
-        new.notify(*args, **kwargs)
+      def notify(...)
+        new.notify(...)
       end
 
       # The same as .notify but delivers synchronously
@@ -80,9 +80,7 @@ module ActiveDelivery
         singleton_class.undef_method "#{line_id}_class"
       end
 
-      def abstract_class?
-        abstract_class == true
-      end
+      def abstract_class? = abstract_class == true
     end
 
     attr_reader :params, :notification_name
@@ -93,9 +91,9 @@ module ActiveDelivery
     end
 
     # Enqueues delivery (i.e. uses #deliver_later for mailers)
-    def notify(mid, *args, **kwargs)
+    def notify(mid, ...)
       @notification_name = mid
-      do_notify(*args, **kwargs)
+      do_notify(...)
     end
 
     # The same as .notify but delivers synchronously
@@ -111,12 +109,12 @@ module ActiveDelivery
         next if line.handler_class.nil?
         next unless line.notify?(notification_name)
 
-        notify_line(type, *args, params: params, sync: sync, **kwargs)
+        notify_line(type, *args, params:, sync:, **kwargs)
       end
     end
 
-    def notify_line(type, *args, **kwargs)
-      delivery_lines[type].notify(notification_name, *args, **kwargs)
+    def notify_line(type, ...)
+      delivery_lines[type].notify(notification_name, ...)
     end
 
     def delivery_lines

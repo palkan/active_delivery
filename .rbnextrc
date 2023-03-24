@@ -1,0 +1,4 @@
+nextify: |
+  ./lib
+  --min-version=2.7
+  --edge

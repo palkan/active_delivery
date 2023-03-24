@@ -2,6 +2,10 @@
 
 ## master
 
+- Rails <6 is no longer supported.
+
+- Ruby 2.7+ is required.
+
 ## 0.4.4 (2020-09-01)
 
 - Added `ActiveDelivery::Base.unregister_line` ([@thornomad][])

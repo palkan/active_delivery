@@ -1,0 +1,41 @@
+name: Build
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+
+jobs:
+  rspec:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_JOBS: 4
+      BUNDLE_RETRY: 3
+      CI: true
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ["3.2"]
+        gemfile: [
+          "gemfiles/rails7.gemfile"
+        ]
+        include:
+        - ruby: "2.7"
+          gemfile: "gemfiles/rails6.gemfile"
+        - ruby: "3.1"
+          gemfile: "gemfiles/rails7.gemfile"
+        - ruby: "3.2"
+          gemfile: "gemfiles/railsmain.gemfile"
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        bundler-cache: true
+    - name: Ruby Ruby Next
+      run: |
+        bundle exec ruby-next nextify -V
+    - name: Run RSpec
+      run: |
+        bundle exec rspec

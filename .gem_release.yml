@@ -1,3 +1,4 @@
 bump:
   file: lib/active_delivery/version.rb
   skip_ci: true
+

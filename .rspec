@@ -1,2 +1,3 @@
+-r spec_helper
 -f d
 --color

@@ -7,7 +7,7 @@ pre-commit:
     lychee:
       tags: links
       glob: "*.md"
-      run: lychee *.md && test {staged_files}
+      run: lychee *.md
     forspell:
       tags: grammar
       glob: "*.md"

@@ -1,35 +1,39 @@
 # frozen_string_literal: true
 
-lib = File.expand_path("../lib", __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "active_delivery/version"
+require_relative "lib/active_delivery/version"
 
-Gem::Specification.new do |spec|
-  spec.name = "active_delivery"
-  spec.version = ActiveDelivery::VERSION
-  spec.authors = ["Vladimir Dementyev"]
-  spec.email = ["dementiev.vm@gmail.com"]
+Gem::Specification.new do |s|
+  s.name = "active_delivery"
+  s.version = ActiveDelivery::VERSION
+  s.authors = ["Vladimir Dementyev"]
+  s.email = ["Vladimir Dementyev"]
+  s.homepage = "https://github.com/palkan/active_delivery"
+  s.summary = "Ruby and Rails framework for managing all types of notifications in one place"
+  s.description = "Ruby and Rails framework for managing all types of notifications in one place"
 
-  spec.summary = "Rails framework for managing all types of notifications in one place"
-  spec.description = "Rails framework for managing all types of notifications in one place"
-  spec.homepage = "https://github.com/palkan/active_delivery"
-  spec.license = "MIT"
-
-  spec.required_ruby_version = ">= 2.5"
-
-  spec.metadata = {
-    "bug_tracker_uri" => "http://github.com/palkan/active_delivery/issues",
+  s.metadata = {
+    "bug_tracker_uri" => "https://github.com/palkan/active_delivery/issues",
     "changelog_uri" => "https://github.com/palkan/active_delivery/blob/master/CHANGELOG.md",
-    "documentation_uri" => "http://github.com/palkan/active_delivery",
-    "homepage_uri" => "http://github.com/palkan/active_delivery",
-    "source_code_uri" => "http://github.com/palkan/active_delivery"
+    "documentation_uri" => "https://github.com/palkan/active_delivery",
+    "homepage_uri" => "https://github.com/palkan/active_delivery",
+    "source_code_uri" => "https://github.com/palkan/active_delivery"
   }
 
-  spec.files = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
-  spec.require_paths = ["lib"]
+  s.license = "MIT"
 
-  spec.add_development_dependency "bundler", ">= 1.16"
-  spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "rspec", "~> 3.0"
-  spec.add_development_dependency "standard", "~> 0.2.0"
+  s.files = Dir.glob("lib/**/*") + Dir.glob("lib/.rbnext/**/*") + Dir.glob("bin/**/*") + %w[README.md LICENSE.txt CHANGELOG.md]
+  s.require_paths = ["lib"]
+  s.required_ruby_version = ">= 2.7"
+
+  s.add_development_dependency "bundler", ">= 1.15"
+  s.add_development_dependency "rake", ">= 13.0"
+  s.add_development_dependency "rspec", ">= 3.9"
+
+  # When gem is installed from source, we add `ruby-next` as a dependency
+  # to auto-transpile source files during the first load
+  if ENV["RELEASING_GEM"].nil? && File.directory?(File.join(__dir__, ".git"))
+    s.add_runtime_dependency "ruby-next", ">= 0.15.0"
+  else
+    s.add_dependency "ruby-next-core", ">= 0.15.0"
+  end
 end

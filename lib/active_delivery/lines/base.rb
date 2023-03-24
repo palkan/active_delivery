@@ -15,7 +15,7 @@ module ActiveDelivery
       end
 
       def dup_for(new_owner)
-        self.class.new(id: id, **options, owner: new_owner)
+        self.class.new(id:, **options, owner: new_owner)
       end
 
       def resolve_class(name)
@@ -26,10 +26,10 @@ module ActiveDelivery
         handler_class.respond_to?(method_name)
       end
 
-      def notify_now(handler, mid, *args, **kwargs)
+      def notify_now(handler, mid, ...)
       end
 
-      def notify_later(handler, mid, *args, **kwargs)
+      def notify_later(handler, mid, ...)
       end
 
       def notify(mid, *args, params:, sync:, **kwargs)

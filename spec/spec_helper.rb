@@ -2,7 +2,18 @@
 
 ENV["RACK_ENV"] = "test"
 
-require "bundler/setup"
+begin
+  require "debug" unless ENV["CI"]
+rescue LoadError
+end
+
+require "ruby-next/language/runtime"
+
+if ENV["CI"] == "true"
+  # Only transpile specs, source code MUST be loaded from pre-transpiled files
+  RubyNext::Language.watch_dirs.clear
+  RubyNext::Language.watch_dirs << __dir__
+end
 
 unless ENV["NO_RAILS"]
   require "action_mailer"
@@ -12,11 +23,6 @@ unless ENV["NO_RAILS"]
 end
 
 require "active_delivery"
-
-begin
-  require "pry-byebug"
-rescue LoadError
-end
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].sort.each { |f| require f }
 

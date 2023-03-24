@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require "ruby-next"
+require "ruby-next/language/setup"
+RubyNext::Language.setup_gem_load_path(transpile: true)
+
 require "active_delivery/version"
 require "active_delivery/base"
 require "active_delivery/callbacks" if defined?(ActiveSupport)

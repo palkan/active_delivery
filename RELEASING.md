@@ -30,14 +30,7 @@ git push
 3. Release a gem.
 
 ```sh
-gem release -t
-git push --tags
+make release
 ```
 
-We use [gem-release](https://github.com/svenfuchs/gem-release) for publishing gems with a single command:
-
-```sh
-gem release -t
-```
-
-Don't forget to push tags and write release notes on GitHub (if necessary).
+Under the hood we generated pre-transpiled files with Ruby Next and use [gem-release](https://github.com/svenfuchs/gem-release) to publish a gem. Then, a Git tag is created and pushed to the remote repo.

@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-if ActionMailer::VERSION::MAJOR < 5 || (ActionMailer::VERSION::MAJOR == 5 && ActionMailer::VERSION::MINOR < 2)
-  require "active_delivery/action_mailer/parameterized"
-end
-
 module ActiveDelivery
   module Lines
     class Mailer < Base
@@ -15,20 +11,12 @@ module ActiveDelivery
         mailer_class.action_methods.include?(method_name.to_s)
       end
 
-      def notify_now(mailer, mid, *args, **kwargs)
-        if kwargs.empty?
-          mailer.public_send(mid, *args).deliver_now
-        else
-          mailer.public_send(mid, *args, **kwargs).deliver_now
-        end
+      def notify_now(mailer, mid, ...)
+        mailer.public_send(mid, ...).deliver_now
       end
 
-      def notify_later(mailer, mid, *args, **kwargs)
-        if kwargs.empty?
-          mailer.public_send(mid, *args).deliver_later
-        else
-          mailer.public_send(mid, *args, **kwargs).deliver_later
-        end
+      def notify_later(mailer, mid, ...)
+        mailer.public_send(mid, ...).deliver_later
       end
     end
 
