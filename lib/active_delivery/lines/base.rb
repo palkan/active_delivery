@@ -38,7 +38,9 @@ module ActiveDelivery
       end
 
       def handler_class
-        return @handler_class if instance_variable_defined?(:@handler_class)
+        if ::ActiveDelivery.cache_classes
+          return @handler_class if instance_variable_defined?(:@handler_class)
+        end
 
         return @handler_class = nil if owner.abstract_class?
 

@@ -2,6 +2,8 @@
 
 ## master
 
+- Allow disabled handler classes cache and do not cache when Rails cache_classes is false. ([@palkan][])
+
 - Add `skip_{before,around,after}_notify` support. ([@palkan][])
 
 - Rails <6 is no longer supported.

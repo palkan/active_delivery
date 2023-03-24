@@ -1,6 +1,16 @@
 # frozen_string_literal: true
 
 module ActiveDelivery
+  class << self
+    # Whether to memoize resolved handler classes or not.
+    # Set to false if you're using a code reloader (e.g., Zeitwerk).
+    #
+    # Defaults to true (i.e. memoization is enabled
+    attr_accessor :cache_classes
+  end
+
+  self.cache_classes = true
+
   # Base class for deliveries.
   #
   # Delivery object describes how to notify a user about

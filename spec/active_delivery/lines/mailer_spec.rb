@@ -59,7 +59,7 @@ describe "ActionMailer line" do
   end
 
   describe ".notify" do
-    let(:mailer_instance) { double("mailer") }
+    let(:mailer_instance) { instance_double("ActionMailer::MessageDelivery") }
 
     before { allow(mailer_class).to receive(:do_something).and_return(mailer_instance) }
 
@@ -87,6 +87,25 @@ describe "ActionMailer line" do
 
         delivery_class.notify!(:do_something)
       end
+    end
+  end
+
+  context "cache_classes=false" do
+    before { ::ActiveDelivery.cache_classes = false }
+    after { ::ActiveDelivery.cache_classes = true }
+
+    it "uses a fresh instance of a mailer class every time" do
+      expect { delivery_class.with(test_param: true).notify!(:do_something) }.not_to raise_error
+
+      DeliveryTesting.send(:remove_const, :TestMailer)
+
+      DeliveryTesting::TestMailer = Class.new(ActionMailer::Base) do
+        def do_something
+          raise "boom"
+        end
+      end
+
+      expect { delivery_class.with(test_param: true).notify!(:do_something) }.to raise_error(/boom/)
     end
   end
 end
