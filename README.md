@@ -4,7 +4,7 @@
 
 # Active Delivery
 
-Framework providing an entry point (single _interface_) for all types of notifications: mailers, push notifications, whatever you want.
+Active Delivery is a framework providing an entry point (single _interface_ or _abstraction_) for all types of notifications: mailers, push notifications, whatever you want.
 
 📖 Read the introduction post: ["Crafting user notifications in Rails with Active Delivery"](https://evilmartians.com/chronicles/crafting-user-notifications-in-rails-with-active-delivery)
 
@@ -13,7 +13,7 @@ Framework providing an entry point (single _interface_) for all types of notific
 
 Requirements:
 
-- Ruby ~> 2.5
+- Ruby ~> 2.7
 
 **NOTE**: although most of the examples in this readme are Rails-specific, this gem could be used without Rails/ActiveSupport.
 
@@ -21,7 +21,7 @@ Requirements:
 
 We need a way to handle different notifications _channel_ (mail, push) in one place.
 
-From the business-logic point of view we want to _notify_ a user, hence we need a _separate abstraction layer_ as an entry point to different types of notifications.
+From the business-logic point of view, we want to _notify_ a user, hence we need a _separate abstraction layer_ as an entry point to different types of notifications.
 
 ## The solution
 
@@ -31,7 +31,7 @@ In the simplest case when we have only mailers Active Delivery is just a wrapper
 
 Motivations behind Active Delivery:
 
-- Organize notifications related logic:
+- Organize notifications-related logic:
 
 ```ruby
 # Before
@@ -73,7 +73,7 @@ class PostsDelivery < ActiveDelivery::Base
 end
 ```
 
-It acts as a proxy in front of the different delivery channels (i.e., mailers, notifiers). That means that calling a method on delivery class invokes the same method on the corresponding _sender_ class, e.g.:
+It acts as a proxy in front of the different delivery channels (i.e., mailers, notifiers). That means that calling a method on a delivery class invokes the same method on the corresponding _sender_ class, e.g.:
 
 ```ruby
 PostsDelivery.notify(:published, user, post)
@@ -87,7 +87,7 @@ PostsNotifier.published(user, post).notify_later
 
 P.S. Naming ("delivery") is inspired by Basecamp: https://www.youtube.com/watch?v=m1jOWu7woKM.
 
-**NOTE**: You could specify Mailer class explicitly or by custom pattern, using resolver:
+**NOTE**: You could specify a mailer class explicitly or by custom pattern, using resolver:
 
 ```ruby
 class PostsDelivery < ActiveDelivery::Base
@@ -103,7 +103,7 @@ PostsDelivery.with(user: user).notify(:published, post)
 
 The parameters could be accessed through the `params` instance method (e.g., to implement guard-like logic).
 
-**NOTE**: When params are presents the parameterized mailer is used, i.e.:
+**NOTE**: When params are present, the parameterized mailer is used, i.e.:
 
 ```ruby
 PostsMailer.with(user: user).published(post)
@@ -152,7 +152,7 @@ MyDeliver.notify(:something_wicked_this_way_comes)
 
 ## Testing
 
-**NOTE:** RSpec only for the time being.
+**NOTE:** Only RSpec is supported for the time being.
 
 Active Delivery provides an elegant way to test deliveries in your code (i.e., when you want to check whether a notification has been sent) through a `have_delivered_to` matcher:
 
@@ -163,7 +163,7 @@ it "delivers notification" do
 end
 ```
 
-You can also use such RSpec features as [compound expectations](https://relishapp.com/rspec/rspec-expectations/docs/compound-expectations) and [composed matchers](https://relishapp.com/rspec/rspec-expectations/v/3-8/docs/composing-matchers):
+You can also use such RSpec features as compound expectations and composed matchers:
 
 ```ruby
 it "delivers to RSVPed members via .notify" do
@@ -196,7 +196,7 @@ specify "when event is not found" do
 end
 ```
 
-To test line used (email, push, pigeon), you can the following shared examples:
+To test which line was used (email, push, pigeon 🐦), you can use the following shared examples:
 
 ```ruby
 ##
@@ -247,7 +247,7 @@ RSpec.describe V1::MyDelivery do
 end
 ```
 
-**NOTE:** test mode activated automatically if `RAILS_ENV` or `RACK_ENV` env variable is equal to "test". Otherwise add `require "active_delivery/testing/rspec"` to your `spec_helper.rb` / `rails_helper.rb` manually. This is also required if you're using Spring in test environment (e.g. with help of [spring-commands-rspec](https://github.com/jonleighton/spring-commands-rspec)).
+**NOTE:** test mode activated automatically if `RAILS_ENV` or `RACK_ENV` env variable is equal to "test". Otherwise, add `require "active_delivery/testing/rspec"` to your `spec_helper.rb` / `rails_helper.rb` manually. This is also required if you're using Spring in the test environment (e.g. with help of [spring-commands-rspec](https://github.com/jonleighton/spring-commands-rspec)).
 
 ## Custom "lines"
 
@@ -365,7 +365,7 @@ class PigeonLaunchJob < ActiveJob::Base
 end
 ```
 
-**NOTE**: we fallback to superclass's sender class if `resolve_class` returns nil.
+**NOTE**: we fall back to the superclass's sender class if `resolve_class` returns nil.
 You can disable automatic inference of sender classes by marking delivery as _abstract_:
 
 ```ruby
