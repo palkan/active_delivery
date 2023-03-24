@@ -278,7 +278,7 @@ describe ActiveDelivery::Base do
             end
           end
 
-          before_notify :ensure_id_positive
+          before_notify :ensure_id_positive, :ensure_id_less_than_42
           before_notify :ensure_duck_present, on: :quack
 
           after_notify :launch_fireworks, on: :quack, only: %i[do_something]
@@ -286,6 +286,8 @@ describe ActiveDelivery::Base do
           after_notify :hug_duck, if: :happy_mood?
 
           def ensure_id_positive = params[:id] > 0
+
+          def ensure_id_less_than_42 = params[:id] < 42
 
           def ensure_duck_present = params[:duck].present?
 
@@ -325,6 +327,10 @@ describe ActiveDelivery::Base do
       delivery_class.with(id: 0, duck: "Donald").notify(:do_something)
       expect(quack_class.calls).to eq([])
       expect(quackkk_class.calls).to eq([])
+
+      delivery_class.with(id: 42, duck: "Donald").notify(:do_something)
+      expect(quack_class.calls).to eq([])
+      expect(quackkk_class.calls).to eq([])
     end
 
     specify "when specified line option do not pass" do
@@ -355,6 +361,23 @@ describe ActiveDelivery::Base do
 
         delivery_class.with(id: 10).notify(:do_anything)
         expect(delivery_class.last_notification).to eq :do_anything
+      end
+    end
+
+    describe "#skip_{after,before}_notify", :aggregate_failures do
+      let(:skipped_class) do
+        Class.new(delivery_class) do
+          quack DeliveryTesting::MyQuack
+
+          skip_before_notify :ensure_id_positive
+          skip_after_notify :launch_fireworks, on: :quack
+        end
+      end
+
+      specify do
+        skipped_class.with(id: 0, duck: "Donald").notify(:do_something)
+        expect(quack_class.calls).to eq(["do_something"])
+        expect(delivery_class.calls).to eq([])
       end
     end
   end

@@ -73,22 +73,24 @@ module ActiveDelivery
           skip_after_callbacks_if_terminated: true
       end
 
-      def before_notify(method_or_block = nil, on: :notify, **options, &block)
-        method_or_block ||= block
-        _normalize_callback_options(options)
-        set_callback on, :before, method_or_block, options
-      end
+      %i[before after around].each do |kind|
+        define_method "#{kind}_notify" do |*names, on: :notify, **options, &block|
+          _normalize_callback_options(options)
 
-      def after_notify(method_or_block = nil, on: :notify, **options, &block)
-        method_or_block ||= block
-        _normalize_callback_options(options)
-        set_callback on, :after, method_or_block, options
-      end
+          names.each do |name|
+            set_callback on, kind, name, options
+          end
 
-      def around_notify(method_or_block = nil, on: :notify, **options, &block)
-        method_or_block ||= block
-        _normalize_callback_options(options)
-        set_callback on, :around, method_or_block, options
+          set_callback on, kind, block, options if block
+        end
+
+        define_method "skip_#{kind}_notify" do |*names, on: :notify, **options|
+          _normalize_callback_options(options)
+
+          names.each do |name|
+            skip_callback(on, kind, name, options)
+          end
+        end
       end
     end
   end

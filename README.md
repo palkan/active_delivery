@@ -133,6 +133,12 @@ after_notify :mark_user_as_notified, if: -> { params[:user].present? }
 after_notify :cleanup
 
 around_notify :set_context
+
+# You can also skip callbacks in sub-classes
+skip_before_notify :do_something, only: %i[some_reminder]
+
+# NOTE: Specify `on` option for line-specific callbacks is required to skip them
+skip_after_notify :do_mail_something, on: :mailer
 ```
 
 Example:

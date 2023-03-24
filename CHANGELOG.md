@@ -2,6 +2,8 @@
 
 ## master
 
+- Add `skip_{before,around,after}_notify` support. ([@palkan][])
+
 - Rails <6 is no longer supported.
 
 - Ruby 2.7+ is required.
