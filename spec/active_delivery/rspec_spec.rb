@@ -2,6 +2,7 @@
 
 require "spec_helper"
 
+# rubocop:disable Lint/ConstantDefinitionInBlock
 describe "RSpec matcher" do
   before(:all) do
     ActiveDelivery::Base.register_line :testo, ActiveDelivery::Lines::Base
@@ -11,7 +12,7 @@ describe "RSpec matcher" do
     module ::DeliveryTesting
       class Sender
         class << self
-          alias with new
+          alias_method :with, :new
 
           def send_something(*args)
             new.send_something(*args)
@@ -129,3 +130,4 @@ describe "RSpec matcher" do
     end
   end
 end
+# rubocop:enable Lint/ConstantDefinitionInBlock

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-source 'https://rubygems.org'
+source "https://rubygems.org"
 
-gem 'pry-byebug', platform: :mri
+gem "pry-byebug", platform: :mri
 
 gemspec
 

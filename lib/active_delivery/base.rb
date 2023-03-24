@@ -34,7 +34,7 @@ module ActiveDelivery
     class << self
       attr_accessor :abstract_class
 
-      alias with new
+      alias_method :with, :new
 
       # Enqueues delivery (i.e. uses #deliver_later for mailers)
       def notify(*args, **kwargs)
@@ -48,14 +48,12 @@ module ActiveDelivery
       end
 
       def delivery_lines
-        @lines ||= begin
-          if superclass.respond_to?(:delivery_lines)
-            superclass.delivery_lines.each_with_object({}) do |(key, val), acc|
-              acc[key] = val.dup_for(self)
-            end
-          else
-            {}
+        @lines ||= if superclass.respond_to?(:delivery_lines)
+          superclass.delivery_lines.each_with_object({}) do |(key, val), acc|
+            acc[key] = val.dup_for(self)
           end
+        else
+          {}
         end
       end
 

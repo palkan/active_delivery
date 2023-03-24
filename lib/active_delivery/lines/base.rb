@@ -51,7 +51,7 @@ module ActiveDelivery
       def superclass_handler
         handler_method = "#{id}_class"
 
-        return if ActiveDelivery::Base == owner.superclass
+        return if owner.superclass == ActiveDelivery::Base
         return unless owner.superclass.respond_to?(handler_method)
 
         owner.superclass.public_send(handler_method)

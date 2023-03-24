@@ -7,7 +7,7 @@ end
 module ActiveDelivery
   module Lines
     class Mailer < Base
-      alias mailer_class handler_class
+      alias_method :mailer_class, :handler_class
 
       DEFAULT_RESOLVER = ->(name) { name.gsub(/Delivery$/, "Mailer").safe_constantize }
 

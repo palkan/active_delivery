@@ -265,7 +265,7 @@ Assume that we want to send messages via _pigeons_ and we have the following sen
 class EventPigeon
   class << self
     # Add `.with`  method as an alias
-    alias with new
+    alias_method :with, :new
 
     # delegate delivery action to the instance
     def message_arrived(*args)
@@ -330,7 +330,7 @@ class EventPigeon
 
   class << self
     # Add `.with`  method as an alias
-    alias with new
+    alias_method :with, :new
 
     # delegate delivery action to the instance
     def message_arrived(*args)

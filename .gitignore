@@ -41,3 +41,4 @@ tmp/
 .rbnext/
 
 gemfiles/*.lock
+lefthook-local.yml

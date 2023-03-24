@@ -48,7 +48,7 @@ module ActionMailer
         @params = params
       end
 
-      def __getobj__ #:nodoc:
+      def __getobj__ # :nodoc:
         @obj ||= processed_mailer.message
       end
 
@@ -66,7 +66,7 @@ module ActionMailer
       end
 
       def mailer_args
-        ActionMailer::VERSION::MAJOR < 5 ? [:new, nil, *@args] : [:new]
+        (ActionMailer::VERSION::MAJOR < 5) ? [:new, nil, *@args] : [:new]
       end
 
       def enqueue_delivery(delivery_method, options = {})

@@ -4,6 +4,7 @@ require "spec_helper"
 
 return unless defined?(ActionMailer)
 
+# rubocop:disable Lint/ConstantDefinitionInBlock
 describe "ActionMailer line" do
   before do
     module ::DeliveryTesting
@@ -91,3 +92,4 @@ describe "ActionMailer line" do
     end
   end
 end
+# rubocop:enable Lint/ConstantDefinitionInBlock

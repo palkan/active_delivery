@@ -1,28 +1,17 @@
+inherit_mode:
+  merge:
+    - Exclude
+
 require:
-  - standard/cop/semantic_blocks
+  - standard
 
 inherit_gem:
   standard: config/base.yml
 
+inherit_from:
+  - .rubocop/rspec.yml
+
 AllCops:
-  Exclude:
-    - 'bin/*'
-    - 'tmp/**/*'
-    - 'Gemfile'
-    - 'node_modules/**/*'
-    - 'vendor/**/*'
-    - 'gemfiles/**/*'
-  DisplayCopNames: true
-  TargetRubyVersion: 2.5
-
-Standard/SemanticBlocks:
-  Enabled: false
-
-Style/FrozenStringLiteralComment:
-  Enabled: true
-
-Style/TrailingCommaInArrayLiteral:
-  EnforcedStyleForMultiline: no_comma
-
-Style/TrailingCommaInHashLiteral:
-  EnforcedStyleForMultiline: no_comma
+  NewCops: disable
+  SuggestExtensions: false
+  TargetRubyVersion: 3.2

@@ -2,12 +2,13 @@
 
 require "spec_helper"
 
-# rubocop:disable Lint/DuplicateMethods, Lint/MissingCopEnableDirective, Style/RescueModifier
+# rubocop:disable Lint/ConstantDefinitionInBlock
 describe ActiveDelivery::Base do
   before(:all) do
     class ::QuackLine < ActiveDelivery::Lines::Base
       def resolve_class(name)
-        ::DeliveryTesting.const_get(name.gsub(/Delivery$/, options.fetch(:suffix, "Quack"))) rescue nil
+        ::DeliveryTesting.const_get(name.gsub(/Delivery$/, options.fetch(:suffix, "Quack")))
+      rescue
       end
 
       def notify_now(handler, mid, *args, **kwargs)
@@ -40,55 +41,55 @@ describe ActiveDelivery::Base do
   end
 
   let(:delivery_class) do
-    DeliveryTesting.const_set("MyDelivery", Class.new(described_class))
+    DeliveryTesting.const_set(:MyDelivery, Class.new(described_class))
   end
 
   describe ".<line>_class" do
     it "infers class from delivery name" do
-      delivery = DeliveryTesting.const_set("MyDelivery", Class.new(described_class))
+      delivery = DeliveryTesting.const_set(:MyDelivery, Class.new(described_class))
 
-      quack_class = DeliveryTesting.const_set("MyQuack", Class.new)
+      quack_class = DeliveryTesting.const_set(:MyQuack, Class.new)
 
       expect(delivery.quack_class).to be_eql(quack_class)
     end
 
     it "infers quack from superclass" do
-      delivery = DeliveryTesting.const_set("MyDelivery", Class.new(described_class))
-      quack_class = DeliveryTesting.const_set("ParentQuack", Class.new)
+      delivery = DeliveryTesting.const_set(:MyDelivery, Class.new(described_class))
+      quack_class = DeliveryTesting.const_set(:ParentQuack, Class.new)
 
       expect(delivery.quack_class).to be_nil
 
-      parent_delivery = DeliveryTesting.const_set("ParentDelivery", Class.new(described_class))
-      sub_delivery = DeliveryTesting.const_set("SubDelivery", Class.new(parent_delivery))
+      parent_delivery = DeliveryTesting.const_set(:ParentDelivery, Class.new(described_class))
+      sub_delivery = DeliveryTesting.const_set(:SubDelivery, Class.new(parent_delivery))
 
       expect(sub_delivery.quack_class).to be_eql(quack_class)
     end
 
     it "uses explicit quack" do
-      quack_class = DeliveryTesting.const_set("JustQuack", Class.new)
+      quack_class = DeliveryTesting.const_set(:JustQuack, Class.new)
 
       delivery = DeliveryTesting.const_set(
-        "MyDelivery", Class.new(described_class) { quack quack_class }
+        :MyDelivery, Class.new(described_class) { quack quack_class }
       )
 
       expect(delivery.quack_class).to be_eql(quack_class)
     end
 
     it "return nil when quack is not found" do
-      delivery = DeliveryTesting.const_set("MyDelivery", Class.new(described_class))
+      delivery = DeliveryTesting.const_set(:MyDelivery, Class.new(described_class))
       expect(delivery.quack_class).to be_nil
     end
 
     context "with abstract deliveries" do
       it "always return nil for abstract deliveries", :aggregate_failures do
-        delivery = DeliveryTesting.const_set("MyDelivery", Class.new(described_class) { self.abstract_class = true })
-        DeliveryTesting.const_set("MyQuack", Class.new)
-        DeliveryTesting.const_set("ParentQuack", Class.new)
+        delivery = DeliveryTesting.const_set(:MyDelivery, Class.new(described_class) { self.abstract_class = true })
+        DeliveryTesting.const_set(:MyQuack, Class.new)
+        DeliveryTesting.const_set(:ParentQuack, Class.new)
 
         expect(delivery.quack_class).to be_nil
 
-        parent_delivery = DeliveryTesting.const_set("ParentDelivery", Class.new(described_class) { self.abstract_class = true })
-        sub_delivery = DeliveryTesting.const_set("SubDelivery", Class.new(parent_delivery))
+        parent_delivery = DeliveryTesting.const_set(:ParentDelivery, Class.new(described_class) { self.abstract_class = true })
+        sub_delivery = DeliveryTesting.const_set(:SubDelivery, Class.new(parent_delivery))
 
         expect(sub_delivery.quack_class).to be_nil
       end
@@ -98,7 +99,7 @@ describe ActiveDelivery::Base do
   context "notifications" do
     let!(:quack_class) do
       DeliveryTesting.const_set(
-        "MyQuack",
+        :MyQuack,
         Class.new do
           class << self
             def do_something
@@ -162,7 +163,7 @@ describe ActiveDelivery::Base do
 
     context "when unregister_line on the class that registered the line the first time" do
       it "unsets the <line>_class method" do
-        delivery_class = DeliveryTesting.const_set("MyDelivery", Class.new(described_class))
+        delivery_class = DeliveryTesting.const_set(:MyDelivery, Class.new(described_class))
 
         expect(delivery_class.respond_to?(:quack_quack_class)).to be true
         expect(delivery_class.respond_to?(:quack_quack)).to be true
@@ -181,7 +182,7 @@ describe ActiveDelivery::Base do
   describe ".with" do
     let!(:quack_class) do
       DeliveryTesting.const_set(
-        "MyQuack",
+        :MyQuack,
         Class.new do
           class << self
             attr_accessor :params
@@ -209,7 +210,7 @@ describe ActiveDelivery::Base do
   describe "callbacks", skip: !defined?(ActiveSupport) do
     let!(:quack_class) do
       DeliveryTesting.const_set(
-        "MyQuack",
+        :MyQuack,
         Class.new do
           class << self
             attr_accessor :params
@@ -243,7 +244,7 @@ describe ActiveDelivery::Base do
 
     let!(:quackkk_class) do
       DeliveryTesting.const_set(
-        "MyQuackkk",
+        :MyQuackkk,
         Class.new do
           class << self
             attr_accessor :params
@@ -277,7 +278,7 @@ describe ActiveDelivery::Base do
 
     let(:delivery_class) do
       DeliveryTesting.const_set(
-        "MyDelivery",
+        :MyDelivery,
         Class.new(described_class) do
           class << self
             attr_writer :calls
@@ -351,7 +352,7 @@ describe ActiveDelivery::Base do
     describe "#notification_name" do
       let(:delivery_class) do
         DeliveryTesting.const_set(
-          "MyDelivery",
+          :MyDelivery,
           Class.new(described_class) do
             class << self
               attr_accessor :last_notification
@@ -374,3 +375,4 @@ describe ActiveDelivery::Base do
     end
   end
 end
+# rubocop:enable Lint/ConstantDefinitionInBlock
