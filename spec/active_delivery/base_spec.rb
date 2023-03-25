@@ -59,7 +59,7 @@ describe ActiveDelivery::Base do
       quack_class = DeliveryTesting.const_set(:JustQuack, Class.new)
 
       delivery = DeliveryTesting.const_set(
-        :MyDelivery, Class.new(described_class) { quack quack_class }
+        :MyDelivery, Class.new(described_class) { quack(quack_class) }
       )
 
       expect(delivery.quack_class).to be_eql(quack_class)

@@ -1,11 +1,16 @@
 # frozen_string_literal: true
 
+unless "".respond_to?(:safe_constantize)
+  require "active_delivery/ext/string_constantize"
+  using ActiveDelivery::Ext::StringConstantize
+end
+
 module ActiveDelivery
   module Lines
     class Base
       attr_reader :id, :options
       attr_accessor :owner
-      attr_writer :handler_class
+      attr_accessor :handler_class_name
 
       def initialize(id:, owner:, **options)
         @id = id
@@ -44,20 +49,20 @@ module ActiveDelivery
 
         return @handler_class = nil if owner.abstract_class?
 
-        @handler_class = resolve_class(owner.name) ||
-          superclass_handler
+        superline = owner.superclass.delivery_lines[id] if owner.superclass.respond_to?(:delivery_lines) && owner.superclass.delivery_lines[id]
+
+        # If an explicit class name has been specified somewhere in the ancestor chain, use it.
+        class_name = @handler_class_name || superline&.handler_class_name
+
+        @handler_class =
+          if class_name
+            class_name.is_a?(Class) ? class_name : class_name.safe_constantize
+          else
+            resolve_class(owner.name) || superline&.handler_class
+          end
       end
 
       private
-
-      def superclass_handler
-        handler_method = "#{id}_class"
-
-        return if owner.superclass == ActiveDelivery::Base
-        return unless owner.superclass.respond_to?(handler_method)
-
-        owner.superclass.public_send(handler_method)
-      end
 
       attr_reader :resolver
     end

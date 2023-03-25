@@ -2,6 +2,8 @@
 
 ## master
 
+- Support passing a string class name as a handler class. ([@palkan][])
+
 - Allow disabled handler classes cache and do not cache when Rails cache_classes is false. ([@palkan][])
 
 - Add `skip_{before,around,after}_notify` support. ([@palkan][])

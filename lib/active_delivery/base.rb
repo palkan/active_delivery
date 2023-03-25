@@ -72,7 +72,7 @@ module ActiveDelivery
 
         instance_eval <<~CODE, __FILE__, __LINE__ + 1
           def #{line_id}(val)
-            delivery_lines[:#{line_id}].handler_class = val
+            delivery_lines[:#{line_id}].handler_class_name = val
           end
 
           def #{line_id}_class
@@ -92,6 +92,8 @@ module ActiveDelivery
 
       def abstract_class? = abstract_class == true
     end
+
+    self.abstract_class = true
 
     attr_reader :params, :notification_name
 

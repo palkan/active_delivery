@@ -59,7 +59,7 @@ gem "active_delivery"
 And then execute:
 
 ```sh
-bundle
+bundle install
 ```
 
 ## Usage
@@ -85,13 +85,21 @@ PostsMailer.published(user, post).deliver_later
 PostsNotifier.published(user, post).notify_later
 ```
 
-P.S. Naming ("delivery") is inspired by Basecamp: https://www.youtube.com/watch?v=m1jOWu7woKM.
-
-**NOTE**: You could specify a mailer class explicitly or by custom pattern, using resolver:
+You can specify a mailer class explicitly:
 
 ```ruby
 class PostsDelivery < ActiveDelivery::Base
-  register_line :custom_mailer, ActiveDelivery::Lines::Mailer, resolver: ->(name) { CustomMailer }
+  mailer "CustomPostsMailer"
+  # For other lines, you the line name as well
+  # twilio "MyPostsNotifier"
+end
+```
+
+Or you can provide a custom resolver by re-registering the line:
+
+```ruby
+class PostsDelivery < ActiveDelivery::Base
+  register_line :mailer, ActiveDelivery::Lines::Mailer, resolver: ->(_name) { CustomMailer }
 end
 ```
 
@@ -328,7 +336,7 @@ class PigeonLine < ActiveDelivery::Lines::Base
 end
 ```
 
-In case of parameterized calling, some update needs to be done on the new Line. Here is an example:
+In the case of parameterized calling, some update needs to be done on the new Line. Here is an example:
 
 ```ruby
 class EventPigeon
@@ -395,7 +403,7 @@ class EventDelivery < ActiveDelivery::Base
   # register_line :pigeon, PigeonLine, namespace: "AngryPigeons"
   #
   # now you can explicitly specify pigeon class
-  # pigeon MyCustomPigeon
+  # pigeon "MyCustomPigeon"
   #
   # or define pigeon specific callbacks
   #
@@ -403,7 +411,7 @@ class EventDelivery < ActiveDelivery::Base
 end
 ```
 
-You can also _unregister_ a line.  For example, when subclassing another `Delivery` class or to remove any of the automatically added lines (e.g., `mailer`):
+You can also _unregister_ a line:
 
 ```ruby
 class NonMailerDelivery < ActiveDelivery::Base
