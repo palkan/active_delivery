@@ -22,10 +22,14 @@ task :nextify do
   sh "bundle exec ruby-next nextify -V"
 end
 
-desc "Run acceptance specs without Rails"
-RSpec::Core::RakeTask.new("spec:norails") do |task|
-  ENV["NORAILS"] = "1"
-  task.verbose = false
+desc "Run specs without Rails"
+task "spec:norails" do
+  rspec_args = ARGV.join.split("--", 2).then { (_1.size == 2) ? _1.last : nil }
+  sh <<~COMMAND
+    NO_RAILS=1 \
+    rspec
+    #{rspec_args}
+  COMMAND
 end
 
 task default: %w[rubocop rubocop:md spec spec:norails]

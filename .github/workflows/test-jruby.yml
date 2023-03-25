@@ -26,3 +26,6 @@ jobs:
     - name: Run RSpec
       run: |
         bundle exec rspec
+    - name: Run RSpec w/o Rails
+      run: |
+        bundle exec rake spec:norails
