@@ -64,25 +64,46 @@ bundle install
 
 ## Usage
 
-The _Delivery_ class is used to trigger notifications. It describes how to notify a user (e.g., via email or push notification or both):
+The _Delivery_ class is used to trigger notifications. It describes how to notify a user (e.g., via email or push notification or both).
+
+First, it's recommended to create a base class for all deliveries with the configuration of the lines:
 
 ```ruby
-class PostsDelivery < ActiveDelivery::Base
-  # in most cases you don't have to specify anything in this class,
-  # 'cause default transport-level classes (such as mailers)
+# In the base class, you configure delivery lines
+class ApplicationDelivery < ActiveDelivery::Base
+  self.abstract_class = true
+
+  # Mailers are enabled by default, everything else must be declared explicitly
+
+  # For example, you can use a notifier line (see below) with a custom resolver
+  register_line :sms, ActiveDelivery::Lines::Notifier,
+    resolver: -> { _1.gsub(/Delivery$/, "SMSNotifier").safe_constantize }
+
+  register_line :cable, ActionCableDeliveryLine
+  # and more
 end
 ```
 
-It acts as a proxy in front of the different delivery channels (i.e., mailers, notifiers). That means that calling a method on a delivery class invokes the same method on the corresponding _sender_ class, e.g.:
+Then, you can create a delivery class for a specific notification type. We follow Action Mailer conventions, and create a delivery class per resource:
+
+```ruby
+class PostsDelivery < ApplicationDelivery
+end
+```
+
+In most cases, you just leave this class blank. The corresponding mailers, notifiers, etc., will be inferred automatically using the naming convention.
+
+Then, to trigger a notification, you call the `#notify` method with the notification name and the arguments:
 
 ```ruby
 PostsDelivery.notify(:published, user, post)
 
-# under the hood it calls
+# Under the hood it calls
 PostsMailer.published(user, post).deliver_later
+PostsSMSNotifier.published(user, post).notify_later
 
-# and if you have a notifier (or any other line, see below)
-PostsNotifier.published(user, post).notify_later
+# and whaterver your ActionCableDeliveryLine does
+# under the hood
 ```
 
 You can specify a mailer class explicitly:
@@ -91,7 +112,7 @@ You can specify a mailer class explicitly:
 class PostsDelivery < ActiveDelivery::Base
   mailer "CustomPostsMailer"
   # For other lines, you the line name as well
-  # twilio "MyPostsNotifier"
+  # sms "MyPostsSMSNotifier"
 end
 ```
 
@@ -117,11 +138,13 @@ The parameters could be accessed through the `params` instance method (e.g., to 
 PostsMailer.with(user: user).published(post)
 ```
 
+Other line implementations **MUST** also have the `#with` method in their public interface.
+
 See [Rails docs](https://api.rubyonrails.org/classes/ActionMailer/Parameterized.html) for more information on parameterized mailers.
 
 ## Callbacks support
 
-**NOTE:** callbacks are only available if ActiveSupport is present in the app's runtime.
+**NOTE:** callbacks are only available if ActiveSupport is present in the application's runtime.
 
 ```ruby
 # Run method before delivering notification
@@ -273,6 +296,8 @@ A line connects _delivery_ to the _sender_ class responsible for sending notific
 
 If you want to use parameterized deliveries, your _sender_ class must respond to `.with(params)` method.
 
+### A full-featured line example: pigeons 🐦
+
 Assume that we want to send messages via _pigeons_ and we have the following sender class:
 
 ```ruby
@@ -417,6 +442,70 @@ You can also _unregister_ a line:
 class NonMailerDelivery < ActiveDelivery::Base
   # Use unregister_line to remove any default or inherited lines
   unregister_line :mailer
+end
+```
+
+### An example of a universal sender: Action Cable
+
+Although Active Delivery is designed to work with Action Mailer-like abstraction, it's flexible enough to support other use cases.
+
+For example, for some notification channels, we don't need to create a separate class for each resource or context; we can send the payload right to the communication channel. Let's consider an Action Cable line as an example.
+
+For every delivery, we want to broadcast a message via Action Cable to the stream corresponding to the delivery class name. For example:
+
+```ruby
+# Our PostsDelivery example from the beginning
+PostsDelivery.with(user:).notify(:published, post)
+
+# Will results in the following Action Cable broadcast:
+DeliveryChannel.broadcast_to user, {event: "posts.published", post_id: post.id}
+```
+
+The `ActionCableDeliveryLine` class can be implemented as follows:
+
+```ruby
+class ActionCableDeliveryLine < ActiveDelivery::Line::Base
+  # Context is our universal sender.
+  class Context
+    attr_reader :user
+
+    def initialize(scope)
+      @scope = scope
+    end
+
+    # User is required for this line
+    def with(user:, **)
+      @user = user
+      self
+    end
+  end
+
+  # The result of this callback is passed further to the `notify_now` method
+  def resolve_class(name)
+    Context.new(name.sub(/Delivery$/, "").underscore)
+  end
+
+  # We want to broadcast all notifications
+  def notify?(...) = true
+
+  def notify_now(context, delivery_action, *args, **kwargs)
+    # Skip if no user provided
+    return unless context.user
+
+    payload = {event: [context.scope, delivery_action].join(".")}
+    payload.merge!(serialized_args(*args, **kwargs))
+
+    DeliveryChannel.broadcast_to context.user, payload
+  end
+
+  # Broadcasts are asynchronous by nature, so we can just use `notify_now`
+  alias_method :notify_later, :notify_now
+
+  private
+
+  def serialized_args(*args, **kwargs)
+    # Code that convers AR objects into IDs, etc.
+  end
 end
 ```
 
