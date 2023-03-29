@@ -2,6 +2,8 @@
 
 ## master
 
+- Add `#deliver_via(*lines)` RSpec matcher. ([@palkan][])
+
 - Provide ActionMailer-like interface to trigger notifications. ([@palkan][])
 
 Now you can send notifications as follows:

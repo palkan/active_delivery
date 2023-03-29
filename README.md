@@ -305,8 +305,8 @@ describe PostsDelivery, type: :delivery do
   describe "#published" do
     it "delivers to mailer and sms" do
       expect {
-        described_class.published(user, post).deliver_now
-      }.to deliver_via(:mailer, :sms, mailer_class: PostsMailer)
+        described_class.published(user, post).deliver_later
+      }.to deliver_via(:mailer, :sms)
     end
 
     context "when user is not subscribed to SMS notifications" do

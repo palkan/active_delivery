@@ -204,6 +204,7 @@ module ActiveDelivery
         sync:,
         **delivery.options
       )
+      true
     end
 
     def delivery(notification:, params: nil, options: nil, metadata: nil)

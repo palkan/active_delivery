@@ -22,12 +22,21 @@ module ActiveDelivery
         store << [delivery, options]
       end
 
+      def track_line(line)
+        lines << line
+      end
+
       def store
-        @store ||= []
+        Thread.current.thread_variable_get(:active_delivery_testing_store) || Thread.current.thread_variable_set(:active_delivery_testing_store, [])
+      end
+
+      def lines
+        Thread.current.thread_variable_get(:active_delivery_testing_lines) || Thread.current.thread_variable_set(:active_delivery_testing_lines, [])
       end
 
       def clear
         store.clear
+        lines.clear
       end
     end
 
@@ -35,6 +44,11 @@ module ActiveDelivery
       return super unless test?
       TestDelivery.track(delivery, options)
       nil
+    end
+
+    def notify_line(line, ...)
+      res = super
+      TestDelivery.track_line(line) if res
     end
 
     def test?
