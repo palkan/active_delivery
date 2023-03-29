@@ -17,3 +17,18 @@ class Quack
     raise "Quack #{mid}!"
   end
 end
+
+class QuackLine < ActiveDelivery::Lines::Base
+  def resolve_class(klass)
+    ::DeliveryTesting.const_get(klass.name.gsub(/Delivery$/, options.fetch(:suffix, "Quack")))
+  rescue
+  end
+
+  def notify_now(handler, ...)
+    handler.public_send(...).quack_quack
+  end
+
+  def notify_later(handler, ...)
+    handler.public_send(...).quack_later
+  end
+end

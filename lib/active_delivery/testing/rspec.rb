@@ -172,6 +172,37 @@ module ActiveDelivery
       end
     end
   end
+
+  class DeliverVia < RSpec::Matchers::BuiltIn::BaseMatcher
+    attr_reader :lines
+
+    def initialize(*lines)
+      @actual_lines = []
+      @lines = lines.sort
+    end
+
+    def supports_block_expectations?
+      true
+    end
+
+    def matches?(proc)
+      raise ArgumentError, "deliver_via only supports block expectations" unless Proc === proc
+
+      TestDelivery.lines.clear
+
+      proc.call
+
+      @actual_lines = TestDelivery.lines.sort
+
+      lines == @actual_lines
+    end
+
+    private
+
+    def failure_message
+      "expected to deliver via #{lines.join(", ")} lines, but delivered to #{@actual_lines.any? ? @actual_lines.join(", ") : "none"}"
+    end
+  end
 end
 
 RSpec.configure do |config|
@@ -180,6 +211,12 @@ RSpec.configure do |config|
       ActiveDelivery::HaveDeliveredTo.new(*args)
     end
   end)
+
+  config.include(Module.new do
+    def deliver_via(*args)
+      ActiveDelivery::DeliverVia.new(*args)
+    end
+  end, type: :delivery)
 end
 
 RSpec::Matchers.define_negated_matcher :have_not_delivered_to, :have_delivered_to

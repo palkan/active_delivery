@@ -3,21 +3,6 @@
 # rubocop:disable Lint/ConstantDefinitionInBlock
 describe ActiveDelivery::Base do
   before(:all) do
-    class ::QuackLine < ActiveDelivery::Lines::Base
-      def resolve_class(klass)
-        ::DeliveryTesting.const_get(klass.name.gsub(/Delivery$/, options.fetch(:suffix, "Quack")))
-      rescue
-      end
-
-      def notify_now(handler, ...)
-        handler.public_send(...).quack_quack
-      end
-
-      def notify_later(handler, ...)
-        handler.public_send(...).quack_later
-      end
-    end
-
     ActiveDelivery::Base.register_line :quack, QuackLine
     ActiveDelivery::Base.register_line :quack_quack, QuackLine, suffix: "Quackkk"
   end
@@ -28,6 +13,11 @@ describe ActiveDelivery::Base do
 
   after do
     Object.send(:remove_const, :DeliveryTesting)
+  end
+
+  after(:all) do
+    ActiveDelivery::Base.unregister_line :quack
+    ActiveDelivery::Base.unregister_line :quack_quack
   end
 
   let(:delivery_class) do
