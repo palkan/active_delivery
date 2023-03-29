@@ -2,6 +2,17 @@
 
 ## master
 
+- Provide ActionMailer-like interface to trigger notifications. ([@palkan][])
+
+Now you can send notifications as follows:
+
+```ruby
+MyDelivery.with(user:).new_notification(payload).deliver_later
+
+# Equals to the old (and still supported)
+MyDelivery.with(user:).notify(:new_notification, payload)
+```
+
 - Support passing a string class name as a handler class. ([@palkan][])
 
 - Allow disabled handler classes cache and do not cache when Rails cache_classes is false. ([@palkan][])

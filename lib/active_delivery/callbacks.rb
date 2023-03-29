@@ -37,8 +37,10 @@ module ActiveDelivery
     end
 
     module InstanceExt
-      def do_notify(...)
-        run_callbacks(:notify) { super(...) }
+      def perform_notify(delivery, ...)
+        # We need to store the notification name to be able to use it in callbacks if/unless
+        @notification_name = delivery.notification
+        run_callbacks(:notify) { super(delivery, ...) }
       end
 
       def notify_line(kind, ...)

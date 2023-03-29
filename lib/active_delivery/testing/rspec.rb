@@ -2,12 +2,13 @@
 
 module ActiveDelivery
   class HaveDeliveredTo < RSpec::Matchers::BuiltIn::BaseMatcher
-    attr_reader :delivery_class, :event, :args, :params, :sync_value
+    attr_reader :delivery_class, :event, :args, :kwargs, :params, :sync_value
 
-    def initialize(delivery_class, event = nil, *args)
+    def initialize(delivery_class, event = nil, *args, **kwargs)
       @delivery_class = delivery_class
       @event = event
       @args = args
+      @kwargs = kwargs
       set_expected_number(:exactly, 1)
     end
 
@@ -64,17 +65,25 @@ module ActiveDelivery
       actual_deliveries = TestDelivery.store
 
       @matching_deliveries, @unmatching_deliveries =
-        actual_deliveries.partition do |(delivery, actual_event, actual_args, options)|
-          next false unless delivery_class === delivery
+        actual_deliveries.partition do |(delivery, options)|
+          next false unless delivery_class == delivery.owner.class
 
-          next false unless event.nil? || event == actual_event
-          next false unless params.nil? || params === delivery.params
+          next false if !sync_value.nil? && (options.fetch(:sync, false) != sync_value)
+
+          next false unless params.nil? || params === delivery.owner.params
+
+          next false unless event.nil? || event == delivery.notification
+
+          actual_args = delivery.params
+          actual_kwargs = delivery.options
 
           next false unless args.each.with_index.all? do |arg, i|
             arg === actual_args[i]
           end
 
-          next false if !sync_value.nil? && (options.fetch(:sync, false) != sync_value)
+          next false unless kwargs.all? do |k, v|
+            v === actual_kwargs[k]
+          end
 
           true
         end
@@ -145,12 +154,13 @@ module ActiveDelivery
     end
 
     def deliveries_description(deliveries)
-      deliveries.each.with_object(+"") do |(delivery, event, args, options), msg|
-        msg << "\n  :#{event} via #{delivery.class}" \
+      deliveries.each.with_object(+"") do |(delivery, options), msg|
+        msg << "\n  :#{delivery.notification} via #{delivery.owner.class}" \
               "#{options[:sync] ? " (sync)" : ""}" \
               " with:" \
-              "\n   - params: #{delivery.params.empty? ? "<none>" : delivery.params.to_s}" \
-              "\n   - args: #{args}"
+              "\n   - params: #{delivery.owner.params.empty? ? "<none>" : delivery.owner.params.inspect}" \
+              "\n   - args: #{delivery.params}" \
+              "\n   - kwargs: #{delivery.options}"
       end
     end
 

@@ -5,9 +5,10 @@ module ActiveDelivery
     class Mailer < Base
       alias_method :mailer_class, :handler_class
 
-      DEFAULT_RESOLVER = ->(name) { name&.gsub(/Delivery$/, "Mailer")&.safe_constantize }
+      DEFAULT_RESOLVER = ->(klass) { klass.name&.gsub(/Delivery$/, "Mailer")&.safe_constantize }
 
       def notify?(method_name)
+        return unless mailer_class
         mailer_class.action_methods.include?(method_name.to_s)
       end
 
