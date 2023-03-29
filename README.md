@@ -14,6 +14,7 @@ Active Delivery is a framework providing an entry point (single _interface_ or _
 Requirements:
 
 - Ruby ~> 2.7
+- Rails 6+ (optional).
 
 **NOTE**: although most of the examples in this readme are Rails-specific, this gem could be used without Rails/ActiveSupport.
 
@@ -36,13 +37,13 @@ Motivations behind Active Delivery:
 ```ruby
 # Before
 def after_some_action
-  MyMailer.with(user: user).some_action.deliver_later if user.receive_emails?
+  MyMailer.with(user: user).some_action(resource).deliver_later if user.receive_emails?
   NotifyService.send_notification(user, "action") if whatever_else?
 end
 
 # After
 def after_some_action
-  MyDelivery.with(user: user).notify(:some_action)
+  MyDelivery.with(user: user).some_action(resource).deliver_later
 end
 ```
 
@@ -77,7 +78,7 @@ class ApplicationDelivery < ActiveDelivery::Base
 
   # For example, you can use a notifier line (see below) with a custom resolver
   register_line :sms, ActiveDelivery::Lines::Notifier,
-    resolver: -> { _1.gsub(/Delivery$/, "SMSNotifier").safe_constantize }
+    resolver: -> { _1.name.gsub(/Delivery$/, "SMSNotifier").safe_constantize }
 
   register_line :cable, ActionCableDeliveryLine
   # and more
@@ -93,7 +94,20 @@ end
 
 In most cases, you just leave this class blank. The corresponding mailers, notifiers, etc., will be inferred automatically using the naming convention.
 
-Then, to trigger a notification, you call the `#notify` method with the notification name and the arguments:
+You don't need to define notification methods explicitly. Whenever you invoke a method on a delivery class, it will be proxied to the underlying _line handlers_ (mailers, notifiers, etc.):
+
+```ruby
+PostsDelivery.published(user, post).deliver_later
+
+# Under the hood it calls
+PostsMailer.published(user, post).deliver_later
+PostsSMSNotifier.published(user, post).notify_later
+
+# and whaterver your ActionCableDeliveryLine does
+# under the hood.
+```
+
+Alternatively, you call the `#notify` method with the notification name and the arguments:
 
 ```ruby
 PostsDelivery.notify(:published, user, post)
@@ -101,15 +115,36 @@ PostsDelivery.notify(:published, user, post)
 # Under the hood it calls
 PostsMailer.published(user, post).deliver_later
 PostsSMSNotifier.published(user, post).notify_later
-
-# and whaterver your ActionCableDeliveryLine does
-# under the hood
+# ...
 ```
+
+You can also define a notification method explicitly if you want to add some logic:
+
+```ruby
+class PostsDelivery < ApplicationDelivery
+  def published(user, post)
+    # do something
+
+    # return a delivery object (to chain #deliver_later, etc.)
+    delivery(
+      notification: :published,
+      params: [user, post],
+      # For kwargs, you options
+      options: {},
+      # Metadata that can be used by line handlers
+      metadata: {}
+    )
+  end
+end
+```
+
+### Customizing delivery handlers
 
 You can specify a mailer class explicitly:
 
 ```ruby
 class PostsDelivery < ActiveDelivery::Base
+  # You can pass a class name or a class itself
   mailer "CustomPostsMailer"
   # For other lines, you the line name as well
   # sms "MyPostsSMSNotifier"
@@ -120,9 +155,11 @@ Or you can provide a custom resolver by re-registering the line:
 
 ```ruby
 class PostsDelivery < ActiveDelivery::Base
-  register_line :mailer, ActiveDelivery::Lines::Mailer, resolver: ->(_name) { CustomMailer }
+  register_line :mailer, ActiveDelivery::Lines::Mailer, resolver: ->(_delivery_class) { CustomMailer }
 end
 ```
+
+### Parameterized deliveries
 
 Delivery also supports _parameterized_ calling:
 
@@ -142,7 +179,7 @@ Other line implementations **MUST** also have the `#with` method in their public
 
 See [Rails docs](https://api.rubyonrails.org/classes/ActionMailer/Parameterized.html) for more information on parameterized mailers.
 
-## Callbacks support
+### Callbacks support
 
 **NOTE:** callbacks are only available if ActiveSupport is present in the application's runtime.
 
@@ -189,7 +226,9 @@ MyDeliver.notify(:something_wicked_this_way_comes)
 
 ## Testing
 
-**NOTE:** Only RSpec is supported for the time being.
+**NOTE:** Currently, only RSpec matchers are provided.
+
+### Deliveries
 
 Active Delivery provides an elegant way to test deliveries in your code (i.e., when you want to check whether a notification has been sent) through a `have_delivered_to` matcher:
 
@@ -223,7 +262,7 @@ specify "when event is not found" do
 end
 ```
 
-or use matcher
+or use the `#have_not_delivered_to` matcher:
 
 ```ruby
 specify "when event is not found" do
@@ -233,53 +272,52 @@ specify "when event is not found" do
 end
 ```
 
-To test which line was used (email, push, pigeon 🐦), you can use the following shared examples:
+### Delivery classes
+
+You can test Delivery classes as regular Ruby classes:
 
 ```ruby
-##
-# Line checker for `active_delivery`
-#
-# ==== Attributes
-#
-# * +lines+ - Array of possible lines (:mailer, :pusher, :pigeon..)
-# * +methods+ - methods called on each line
-shared_examples_for "deliverable" do |lines, methods|
-  it "calls correct lines and methods" do
-    lines.each do |line|
-      methods.each do |method|
-        expect(described_class.delivery_lines[line]).to receive(:notify).with(method, anything).once
-        subject
-      end
-    end
-  end
-end
+describe PostsDelivery do
+  let(:user) { build_stubbed(:user) }
+  let(:post) { build_stubbed(:post) }
 
-##
-# Line non-checker for `active_delivery`
-#
-# ==== Attributes
-#
-# * +lines+ - Array of possible lines (:mailer, :pusher)
-# * +methods+ - methods called on each line
-shared_examples_for "not_deliverable" do |lines, methods|
-  it "calls correct lines and methods" do
-    lines.each do |line|
-      methods.each do |method|
-        expect(described_class.delivery_lines[line]).not_to receive(:notify).with(method, anything)
-        subject
-      end
+  describe "#published" do
+    it "sends a mail" do
+      expect {
+        described_class.published(user, post).deliver_now
+      }.to change { ActionMailer::Base.deliveries.count }.by(1)
+
+      mail = ActionMailer::Base.deliveries.last
+      expect(mail.to).to eq([user.email])
+      expect(mail.subject).to eq("New post published")
     end
   end
 end
 ```
 
-and call them like that:
+You can also use the `#deliver_via` matchers as follows:
 
 ```ruby
-RSpec.describe V1::MyDelivery do
-  context "when..." do
-    it_behaves_like "deliverable", [:mailer], [:some_action]
-    it_behaves_like "not_deliverable", [:pusher], [:some_action]
+describe PostsDelivery, type: :delivery do
+  let(:user) { build_stubbed(:user) }
+  let(:post) { build_stubbed(:post) }
+
+  describe "#published" do
+    it "delivers to mailer and sms" do
+      expect {
+        described_class.published(user, post).deliver_now
+      }.to deliver_via(:mailer, :sms, mailer_class: PostsMailer)
+    end
+
+    context "when user is not subscribed to SMS notifications" do
+      let(:user) { build_stubbed(:user, sms_notifications: false) }
+
+      it "delivers to mailer only" do
+        expect {
+          described_class.published(user, post).deliver_now
+        }.to deliver_via(:mailer)
+      end
+    end
   end
 end
 ```

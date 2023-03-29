@@ -18,8 +18,8 @@ module ActiveDelivery
         Thread.current.thread_variable_get(:active_delivery_testing) == true
       end
 
-      def track(delivery, event, args, options)
-        store << [delivery, event, args, options]
+      def track(delivery, options)
+        store << [delivery, options]
       end
 
       def store
@@ -31,9 +31,9 @@ module ActiveDelivery
       end
     end
 
-    def notify(event, *args, **options)
+    def perform_notify(delivery, **options)
       return super unless test?
-      TestDelivery.track(self, event, args, options)
+      TestDelivery.track(delivery, options)
       nil
     end
 

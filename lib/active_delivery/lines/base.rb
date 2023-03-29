@@ -28,7 +28,7 @@ module ActiveDelivery
       end
 
       def notify?(method_name)
-        handler_class.respond_to?(method_name)
+        handler_class&.respond_to?(method_name)
       end
 
       def notify_now(handler, mid, ...)
@@ -58,7 +58,7 @@ module ActiveDelivery
           if class_name
             class_name.is_a?(Class) ? class_name : class_name.safe_constantize
           else
-            resolve_class(owner.name) || superline&.handler_class
+            resolve_class(owner) || superline&.handler_class
           end
       end
 

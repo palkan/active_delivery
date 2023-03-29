@@ -38,8 +38,13 @@ describe "RSpec matcher" do
 
   context "success" do
     specify "with only delivery class" do
-      expect { delivery.notify(:send_something, "data", 42) }
+      expect { delivery.send_something("data", 42).deliver_later }
         .to have_delivered_to(delivery)
+    end
+
+    specify "with #deliver_now" do
+      expect { delivery.send_something("data", 42).deliver_now }
+        .to have_delivered_to(delivery).synchronously
     end
 
     specify "with delivery class and arguments" do

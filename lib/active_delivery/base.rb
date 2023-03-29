@@ -1,6 +1,24 @@
 # frozen_string_literal: true
 
 module ActiveDelivery
+  class Delivery # :nodoc:
+    attr_reader :params, :options, :metadata, :notification, :owner
+
+    def initialize(owner, notification:, params:, options:, metadata:)
+      @owner = owner
+      @notification = notification
+      @params = params.freeze
+      @options = options.freeze
+      @metadata = metadata.freeze
+    end
+
+    def deliver_later = owner.perform_notify(self)
+
+    def deliver_now = owner.perform_notify(self, sync: true)
+
+    def delivery_class = owner.class
+  end
+
   class << self
     # Whether to memoize resolved handler classes or not.
     # Set to false if you're using a code reloader (e.g., Zeitwerk).
@@ -20,6 +38,8 @@ module ActiveDelivery
   # (i.e. mailers, notifiers). That means that calling a method on delivery class invokes the
   # same method on the corresponding class, e.g.:
   #
+  #   EventsDelivery.one_hour_before(profile, event).deliver_later
+  #   # or
   #   EventsDelivery.notify(:one_hour_before, profile, event)
   #
   #   # under the hood it calls
@@ -30,14 +50,14 @@ module ActiveDelivery
   #
   # Delivery also supports _parameterized_ calling:
   #
-  #   EventsDelivery.with(profile: profile).notify(:canceled, event)
+  #   EventsDelivery.with(profile: profile).canceled(event).deliver_later
   #
   # The parameters could be accessed through `params` instance method (e.g.
   # to implement guard-like logic).
   #
   # When params are presents the parametrized mailer is used, i.e.:
   #
-  #   EventsMailer.with(profile: profile).canceled(event)
+  #   EventsMailer.with(profile: profile).canceled(event).deliver_later
   #
   # See https://api.rubyonrails.org/classes/ActionMailer/Parameterized.html
   class Base
@@ -56,6 +76,8 @@ module ActiveDelivery
       def notify!(mid, *args, **hargs)
         notify(mid, *args, **hargs, sync: true)
       end
+
+      alias_method :notify_now, :notify!
 
       def delivery_lines
         @lines ||= if superclass.respond_to?(:delivery_lines)
@@ -91,6 +113,25 @@ module ActiveDelivery
       end
 
       def abstract_class? = abstract_class == true
+
+      def respond_to_missing?(mid, include_private = false)
+        return true if delivery_lines.any? { |_, line| line.notify?(mid) }
+
+        super
+      end
+
+      def method_missing(mid, *args, **kwargs)
+        return super unless respond_to_missing?(mid)
+
+        # Lazily define a class method to avoid lookups
+        class_eval <<~CODE, __FILE__, __LINE__ + 1
+          def self.#{mid}(...)
+            new.#{mid}(...)
+          end
+        CODE
+
+        public_send(mid, *args, **kwargs)
+      end
     end
 
     self.abstract_class = true
@@ -103,30 +144,70 @@ module ActiveDelivery
     end
 
     # Enqueues delivery (i.e. uses #deliver_later for mailers)
-    def notify(mid, ...)
-      @notification_name = mid
-      do_notify(...)
+    def notify(mid, *args, **kwargs)
+      perform_notify(
+        delivery(notification: mid, params: args, options: kwargs)
+      )
     end
 
     # The same as .notify but delivers synchronously
     # (i.e. #deliver_now for mailers)
-    def notify!(mid, *args, **hargs)
-      notify(mid, *args, **hargs, sync: true)
+    def notify!(mid, *args, **kwargs)
+      perform_notify(
+        delivery(notification: mid, params: args, options: kwargs),
+        sync: true
+      )
+    end
+
+    alias_method :notify_now, :notify!
+
+    def respond_to_missing?(mid, include_private = false)
+      return true if delivery_lines.any? { |_, line| line.notify?(mid) }
+
+      super
+    end
+
+    def method_missing(mid, *args, **kwargs)
+      return super unless respond_to_missing?(mid)
+
+      # Lazily define a method to avoid future lookups
+      self.class.class_eval <<~CODE, __FILE__, __LINE__ + 1
+        def #{mid}(*args, **kwargs)
+          delivery(
+            notification: :#{mid},
+            params: args,
+            options: kwargs
+          )
+        end
+      CODE
+
+      public_send(mid, *args, **kwargs)
+    end
+
+    protected
+
+    def perform_notify(delivery, sync: false)
+      delivery_lines.each do |type, line|
+        next unless line.notify?(delivery.notification)
+
+        notify_line(type, line, delivery, sync:)
+      end
     end
 
     private
 
-    def do_notify(*args, sync: false, **kwargs)
-      delivery_lines.each do |type, line|
-        next if line.handler_class.nil?
-        next unless line.notify?(notification_name)
-
-        notify_line(type, *args, params:, sync:, **kwargs)
-      end
+    def notify_line(type, line, delivery, sync:)
+      line.notify(
+        delivery.notification,
+        *delivery.params,
+        params:,
+        sync:,
+        **delivery.options
+      )
     end
 
-    def notify_line(type, ...)
-      delivery_lines[type].notify(notification_name, ...)
+    def delivery(notification:, params: nil, options: nil, metadata: nil)
+      Delivery.new(self, notification:, params:, options:, metadata:)
     end
 
     def delivery_lines

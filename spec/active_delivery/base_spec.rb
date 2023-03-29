@@ -4,8 +4,8 @@
 describe ActiveDelivery::Base do
   before(:all) do
     class ::QuackLine < ActiveDelivery::Lines::Base
-      def resolve_class(name)
-        ::DeliveryTesting.const_get(name.gsub(/Delivery$/, options.fetch(:suffix, "Quack")))
+      def resolve_class(klass)
+        ::DeliveryTesting.const_get(klass.name.gsub(/Delivery$/, options.fetch(:suffix, "Quack")))
       rescue
       end
 
