@@ -126,6 +126,31 @@ describe ActiveDelivery::Base do
           .to raise_error(/Quack krya!/)
       end
     end
+
+    context "when .deliver_actions_required is true" do
+      around do |ex|
+        was_val = ActiveDelivery.deliver_actions_required
+        ActiveDelivery.deliver_actions_required = true
+        ex.run
+        ActiveDelivery.deliver_actions_required = was_val
+      end
+
+      it "raises NoMethodError" do
+        expect { delivery_class.do_something.deliver_later }
+          .to raise_error(NoMethodError)
+      end
+
+      context "when action is specified via #delivers" do
+        before do
+          delivery_class.delivers :do_something
+        end
+
+        it "calls quack_later" do
+          expect { delivery_class.do_something.deliver_later }
+            .to raise_error(/do_something will be quacked later/)
+        end
+      end
+    end
   end
 
   describe ".unregister_line" do
@@ -182,7 +207,7 @@ describe ActiveDelivery::Base do
     end
 
     it "calls with on line class" do
-      expect { delivery_class.with(id: 15, name: "Maldyak").notify(:do_something) }
+      expect { delivery_class.with(id: 15, name: "Maldyak").do_something.deliver_later }
         .to raise_error(/do_something with 15 and Maldyak will be quacked later/)
     end
   end

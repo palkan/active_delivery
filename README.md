@@ -138,6 +138,19 @@ class PostsDelivery < ApplicationDelivery
 end
 ```
 
+Finally, you can disable the default automatic proxying behaviour via the `ActiveDelivery.deliver_actions_required = true` configuration option. Then, in each delivery class, you can specify the available actions via the `.delivers` method:
+
+```ruby
+class PostDelivery < ApplicationDelivery
+  delivers :published
+end
+
+ActiveDelivery.deliver_actions_required = true
+
+PostDelivery.published(post) #=> ok
+PostDelivery.whatever(post) #=> raises NoMethodError
+```
+
 ### Customizing delivery handlers
 
 You can specify a mailer class explicitly:

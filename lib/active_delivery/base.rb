@@ -25,9 +25,13 @@ module ActiveDelivery
     #
     # Defaults to true (i.e. memoization is enabled
     attr_accessor :cache_classes
+    # Whether to enforce specifying available delivery actions via .delivers in the
+    # delivery classes
+    attr_accessor :deliver_actions_required
   end
 
   self.cache_classes = true
+  self.deliver_actions_required = false
 
   # Base class for deliveries.
   #
@@ -114,8 +118,29 @@ module ActiveDelivery
 
       def abstract_class? = abstract_class == true
 
+      # Specify explicitly which actions are supported by the delivery.
+      def delivers(*actions)
+        actions.each do |mid|
+          class_eval <<~CODE, __FILE__, __LINE__ + 1
+            def self.#{mid}(...)
+              new.#{mid}(...)
+            end
+
+            def #{mid}(*args, **kwargs)
+              delivery(
+                notification: :#{mid},
+                params: args,
+                options: kwargs
+              )
+            end
+          CODE
+        end
+      end
+
       def respond_to_missing?(mid, include_private = false)
-        return true if delivery_lines.any? { |_, line| line.notify?(mid) }
+        unless ActiveDelivery.deliver_actions_required
+          return true if delivery_lines.any? { |_, line| line.notify?(mid) }
+        end
 
         super
       end
@@ -124,11 +149,7 @@ module ActiveDelivery
         return super unless respond_to_missing?(mid)
 
         # Lazily define a class method to avoid lookups
-        class_eval <<~CODE, __FILE__, __LINE__ + 1
-          def self.#{mid}(...)
-            new.#{mid}(...)
-          end
-        CODE
+        delivers(mid)
 
         public_send(mid, *args, **kwargs)
       end
@@ -162,7 +183,9 @@ module ActiveDelivery
     alias_method :notify_now, :notify!
 
     def respond_to_missing?(mid, include_private = false)
-      return true if delivery_lines.any? { |_, line| line.notify?(mid) }
+      unless ActiveDelivery.deliver_actions_required
+        return true if delivery_lines.any? { |_, line| line.notify?(mid) }
+      end
 
       super
     end
