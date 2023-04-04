@@ -2,6 +2,31 @@
 
 ## master
 
+- Add ability to specify delivery actions explicitly and disable implicit proxying. ([@palkan][])
+
+You can disable default Active Delivery behaviour of proxying action methods to underlying lines via the `ActiveDelivery.deliver_actions_required = true` configuration option. Then, in each delivery class, you can specify the available actions via the `.delivers` method:
+
+```ruby
+class PostMailer < ApplicationMailer
+  def published(post)
+    # ...
+  end
+
+  def whatever(post)
+    # ...
+  end
+end
+
+ActiveDelivery.deliver_actions_required = true
+
+class PostDelivery < ApplicationDelivery
+  delivers :published
+end
+
+PostDelivery.published(post) #=> ok
+PostDelivery.whatever(post) #=> raises NoMethodError
+```
+
 - Add `#deliver_via(*lines)` RSpec matcher. ([@palkan][])
 
 - Provide ActionMailer-like interface to trigger notifications. ([@palkan][])
