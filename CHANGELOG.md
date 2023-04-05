@@ -2,6 +2,10 @@
 
 ## master
 
+- **Merge in abstract_notifier** ([@palkan][])
+
+[Abstract Notifier](https://github.com/palkan/abstract_notifier) is now a part of Active Delivery.
+
 - Add ability to specify delivery actions explicitly and disable implicit proxying. ([@palkan][])
 
 You can disable default Active Delivery behaviour of proxying action methods to underlying lines via the `ActiveDelivery.deliver_actions_required = true` configuration option. Then, in each delivery class, you can specify the available actions via the `.delivers` method:

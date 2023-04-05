@@ -16,13 +16,47 @@ if ENV["CI"] == "true"
 end
 
 unless ENV["NO_RAILS"]
-  require "action_mailer"
-  require "active_job"
+  require "rails"
+  require "action_controller/railtie"
+  require "action_mailer/railtie"
+  require "active_job/railtie"
+  require "rspec/rails"
+
   ActiveJob::Base.queue_adapter = :test
   ActiveJob::Base.logger = Logger.new(IO::NULL)
 end
 
 require "active_delivery"
+
+class TestJobAdapter
+  attr_reader :jobs
+
+  def initialize
+    @jobs = []
+  end
+
+  def enqueue(notifier, payload)
+    jobs << [notifier, payload]
+  end
+
+  def clear
+    @jobs.clear
+  end
+end
+
+AbstractNotifier.async_adapter = TestJobAdapter.new
+
+class TestDriver
+  class << self
+    def deliveries
+      @deliveries ||= []
+    end
+
+    def call(payload)
+      deliveries << payload
+    end
+  end
+end
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].sort.each { |f| require f }
 
@@ -40,5 +74,10 @@ RSpec.configure do |config|
 
   config.mock_with :rspec do |mocks|
     mocks.verify_partial_doubles = true
+  end
+
+  config.after do
+    AbstractNotifier.async_adapter.clear
+    TestDriver.deliveries.clear
   end
 end

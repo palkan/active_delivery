@@ -28,6 +28,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "bundler", ">= 1.15"
   s.add_development_dependency "rake", ">= 13.0"
   s.add_development_dependency "rspec", ">= 3.9"
+  s.add_development_dependency "rspec-rails", ">= 4.0"
 
   # When gem is installed from source, we add `ruby-next` as a dependency
   # to auto-transpile source files during the first load
