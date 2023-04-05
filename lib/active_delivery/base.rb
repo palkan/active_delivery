@@ -93,7 +93,14 @@ module ActiveDelivery
         end
       end
 
-      def register_line(line_id, line_class, **options)
+      def register_line(line_id, line_class = nil, notifier: nil, **options)
+        raise ArgumentError, "A line class or notifier configuration must be provided" if line_class.nil? && notifier.nil?
+
+        # Configure Notifier
+        if line_class.nil?
+          line_class = ActiveDelivery::Lines::Notifier
+        end
+
         delivery_lines[line_id] = line_class.new(id: line_id, owner: self, **options)
 
         instance_eval <<~CODE, __FILE__, __LINE__ + 1

@@ -6,6 +6,8 @@
 
 Active Delivery is a framework providing an entry point (single _interface_ or _abstraction_) for all types of notifications: mailers, push notifications, whatever you want.
 
+Since v1.0, Active Delivery is bundled with [Abstract Notifier](https://github.com/palkan/abstract_notifier). See the docs on how to create custom notifiers [below](#abstract-notifier).
+
 📖 Read the introduction post: ["Crafting user notifications in Rails with Active Delivery"](https://evilmartians.com/chronicles/crafting-user-notifications-in-rails-with-active-delivery)
 
 <a href="https://evilmartians.com/?utm_source=action_policy">
@@ -560,9 +562,221 @@ class ActionCableDeliveryLine < ActiveDelivery::Line::Base
 end
 ```
 
-## Related projects
+## Abstract Notifier
 
-- [`abstract_notifier`](https://github.com/palkan/abstract_notifier) – Action Mailer-like interface for text-based notifications.
+Abstract Notifier is a tool that allows you to describe/model any text-based notifications (such as Push Notifications) the same way Action Mailer does for email notifications.
+
+Abstract Notifier (as the name states) doesn't provide any specific implementation for sending notifications. Instead, it offers tools to organize your notification-specific code and make it easily testable.
+
+### Notifier classes
+
+A **notifier object** is very similar to an Action Mailer's mailer with  the `#notification` method used instead of the `#mail` method:
+
+```ruby
+class EventsNotifier < ApplicationNotifier
+  def canceled(profile, event)
+    notification(
+      # the only required option is `body`
+      body: "Event #{event.title} has been canceled",
+      # all other options are passed to delivery driver
+      identity: profile.notification_service_id
+    )
+  end
+end
+
+# send notification later
+EventsNotifier.canceled(profile, event).notify_later
+
+# or immediately
+EventsNotifier.canceled(profile, event).notify_now
+```
+
+### Delivery drivers
+
+To perform actual deliveries you **must** configure a _delivery driver_:
+
+```ruby
+class ApplicationNotifier < AbstractNotifier::Base
+  self.driver = MyFancySender.new
+end
+```
+
+A driver could be any callable Ruby object (i.e., anything that responds to `#call`).
+
+That's the developer's responsibility to implement the driver (we do not provide any drivers out-of-the-box; at least yet).
+
+You can set different drivers for different notifiers.
+
+### Parameterized notifiers
+
+Abstract Notifier supports parameterization the same way as [Action Mailer](https://api.rubyonrails.org/classes/ActionMailer/Parameterized.html):
+
+```ruby
+class EventsNotifier < ApplicationNotifier
+  def canceled(event)
+    notification(
+      body: "Event #{event.title} has been canceled",
+      identity: params[:profile].notification_service_id
+    )
+  end
+end
+
+EventsNotifier.with(profile: profile).canceled(event).notify_later
+```
+
+### Defaults
+
+You can specify default notification fields at a class level:
+
+```ruby
+class EventsNotifier < ApplicationNotifier
+  # `category` field will be added to the notification
+  # if missing
+  default category: "EVENTS"
+
+  # ...
+end
+```
+
+**NOTE**: when subclassing notifiers, default parameters are merged.
+
+You can also specify a block or a method name as the default params _generator_.
+This could be useful in combination with the `#notification_name` method to generate dynamic payloads:
+
+```ruby
+class ApplicationNotifier < AbstractNotifier::Base
+  default :build_defaults_from_locale
+
+  private
+
+  def build_defaults_from_locale
+    {
+      subject: I18n.t(notification_name, scope: [:notifiers, self.class.name.underscore])
+    }
+  end
+end
+```
+
+### Background jobs / async notifications
+
+To use `#notify_later` you **must** configure an async adapter for Abstract Notifier.
+
+We provide an Active Job adapter out of the box and enable it if Active Job is found.
+
+A custom async adapter must implement the `#enqueue` method:
+
+```ruby
+class MyAsyncAdapter
+  # adapters may accept options
+  def initialize(options = {})
+  end
+
+  # `enqueue` method accepts notifier class and notification
+  # payload.
+  # We need to know notifier class to use its driver.
+  def enqueue(notifier_class, payload)
+    # your implementation here
+  end
+end
+
+# Configure globally
+AbstractNotifier.async_adapter = MyAsyncAdapter.new
+
+# or per-notifier
+class EventsNotifier < AbstractNotifier::Base
+  self.async_adapter = MyAsyncAdapter.new
+end
+```
+
+### Delivery modes
+
+For test/development purposes there are two special _global_ delivery modes:
+
+```ruby
+# Track all sent notifications without peforming real actions.
+# Required for using RSpec matchers.
+#
+# config/environments/test.rb
+AbstractNotifier.delivery_mode = :test
+
+# If you don't want to trigger notifications in development,
+# you can make Abstract Notifier no-op.
+#
+# config/environments/development.rb
+AbstractNotifier.delivery_mode = :noop
+
+# Default delivery mode is "normal"
+AbstractNotifier.delivery_mode = :normal
+```
+
+**NOTE:** we set `delivery_mode = :test` if `RAILS_ENV` or `RACK_ENV` env variable is equal to "test".
+Otherwise add `require "abstract_notifier/testing"` to your `spec_helper.rb` / `rails_helper.rb` manually.
+
+**NOTE:** delivery mode affects all drivers.
+
+### Testing notifier deliveries
+
+Abstract Notifier provides two convenient RSpec matchers:
+
+```ruby
+# for testing sync notifications (sent with `notify_now`)
+expect { EventsNotifier.with(profile: profile).canceled(event).notify_now }
+  .to have_sent_notification(identify: "123", body: "Alarma!")
+
+# for testing async notifications (sent with `notify_later`)
+expect { EventsNotifier.with(profile: profile).canceled(event).notify_later }
+  .to have_enqueued_notification(via: EventNotifier, identify: "123", body: "Alarma!")
+
+# you can also specify the expected notifier class (useful when ypu have multiple notifier lines)
+expect { EventsNotifier.with(profile: profile).canceled(event).notify_now }
+  .to have_sent_notification(via: EventsNotifier, identify: "123", body: "Alarma!")
+```
+
+Abstract Notifier also provides Minitest assertions:
+
+```ruby
+require "abstract_notifier/testing/minitest"
+
+class EventsNotifierTestCase < Minitest::Test
+  include AbstractNotifier::TestHelper
+
+  test "canceled" do
+    assert_notifications_sent 1, identify: "321", body: "Alarma!" do
+      EventsNotifier.with(profile: profile).canceled(event).notify_now
+    end
+
+    assert_notifications_sent 1, via: EventNofitier, identify: "123", body: "Alarma!" do
+      EventsNotifier.with(profile: profile).canceled(event).notify_now
+    end
+
+    assert_notifications_enqueued 1, via: EventNofitier, identify: "123", body: "Alarma!" do
+      EventsNotifier.with(profile: profile).canceled(event).notify_later
+    end
+  end
+end
+```
+
+**NOTE:** test mode activated automatically if `RAILS_ENV` or `RACK_ENV` env variable is equal to "test". Otherwise, add `require "abstract_notifier/testing/rspec"` to your `spec_helper.rb` / `rails_helper.rb` manually. This is also required if you're using Spring in a test environment (e.g. with help of [spring-commands-rspec](https://github.com/jonleighton/spring-commands-rspec)).
+
+### Notifier lines for Active Delivery
+
+Abstract Notifier provides a _notifier_ line for Active Delivery:
+
+```ruby
+class ApplicationDelivery < ActiveDelivery::Base
+  # Add notifier line to you delivery
+  # By default, we use `*Delivery` -> `*Notifier` resolution mechanism
+  register_line :notifier, notifier: true
+
+  # You can define a custom suffix to use for notifier classes:
+  #   `*Delivery` -> `*CustomNotifier`
+  register_line :custom_notifier, notifier: true, suffix: "CustomNotifier"
+
+  # Or you can specify a Proc object to do custom resolution:
+  register_line :some_notifier, notifier: true,
+    resolver: ->(delivery_class) { resolve_somehow(delivery_class) }
+end
+```
 
 ## Contributing
 
