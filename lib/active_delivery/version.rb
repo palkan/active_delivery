@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module ActiveDelivery
-  VERSION = "0.4.4"
+  VERSION = "1.0.0.rc2"
 end
