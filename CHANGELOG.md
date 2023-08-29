@@ -2,6 +2,8 @@
 
 ## master
 
+- Add callbacks support to Abstract Notifier. ([@palkan][])
+
 - **Merge in abstract_notifier** ([@palkan][])
 
 [Abstract Notifier](https://github.com/palkan/abstract_notifier) is now a part of Active Delivery.

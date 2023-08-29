@@ -69,6 +69,7 @@ end
 require "abstract_notifier/base"
 require "abstract_notifier/async_adapters"
 
+require "abstract_notifier/callbacks" if defined?(ActiveSupport)
 require "abstract_notifier/async_adapters/active_job" if defined?(ActiveJob)
 
 require "abstract_notifier/testing" if ENV["RACK_ENV"] == "test" || ENV["RAILS_ENV"] == "test"

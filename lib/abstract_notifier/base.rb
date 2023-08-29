@@ -13,12 +13,12 @@ module AbstractNotifier
     end
 
     def notify_later
-      return if AbstractNotifier.noop?
+      return if AbstractNotifier.noop? || payload.nil?
       owner.async_adapter.enqueue owner, payload
     end
 
     def notify_now
-      return if AbstractNotifier.noop?
+      return if AbstractNotifier.noop? || payload.nil?
       owner.driver.call(payload)
     end
   end
@@ -36,9 +36,9 @@ module AbstractNotifier
       # rubocop:disable Style/MethodMissingSuper
       def method_missing(method_name, *args, **kwargs)
         if kwargs.empty?
-          notifier_class.new(method_name, **params).public_send(method_name, *args)
+          notifier_class.new(method_name, **params).process_action(method_name, *args)
         else
-          notifier_class.new(method_name, **params).public_send(method_name, *args, **kwargs)
+          notifier_class.new(method_name, **params).process_action(method_name, *args, **kwargs)
         end
       end
       # rubocop:enable Style/MethodMissingSuper
@@ -114,7 +114,7 @@ module AbstractNotifier
 
       def method_missing(method_name, *args)
         if action_methods.include?(method_name.to_s)
-          new(method_name).public_send(method_name, *args)
+          new(method_name).process_action(method_name, *args)
         else
           super
         end
@@ -150,6 +150,10 @@ module AbstractNotifier
     def initialize(notification_name, **params)
       @notification_name = notification_name
       @params = params.freeze
+    end
+
+    def process_action(method_name, *args)
+      public_send(method_name, *args)
     end
 
     def notification(**payload)

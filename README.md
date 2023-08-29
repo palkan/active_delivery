@@ -688,6 +688,46 @@ class EventsNotifier < AbstractNotifier::Base
 end
 ```
 
+### Action Callbacks
+
+**NOTE:** callbacks are only available if ActiveSupport is present in the application's runtime.
+
+```ruby
+# Run method before delivering notification
+# NOTE: when `false` is returned the execution is halted
+before_action :do_something
+
+# if and unless options are also at your disposal
+after_action :mark_user_as_notified, if: -> { params[:user].present? }
+
+# after_ and around_ callbacks are also supported
+after_action_ :cleanup
+
+around_action :set_context
+
+# You can also skip callbacks in sub-classes
+skip_before_action :do_something, only: %i[some_reminder]
+```
+
+Example:
+
+```ruby
+# Let's log notifications
+class MyNotifier < AbstractNotifier::Base
+  after_action do
+    # You can access the notification name within the instance
+    MyLogger.info "Notification sent: #{notification_name}"
+  end
+
+  def some_event(body)
+    notification(body:)
+  end
+end
+
+MyNotifier.some_event("hello")
+#=> Notification sent: some_event
+```
+
 ### Delivery modes
 
 For test/development purposes there are two special _global_ delivery modes:

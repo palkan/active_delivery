@@ -199,4 +199,76 @@ describe AbstractNotifier::Base do
       ).with(body: "Notification: fake!", identity: "qwerty123", tag: "all")
     end
   end
+
+  describe "callbacks", skip: !defined?(ActiveSupport) do
+    let(:user_class) { Struct.new(:name, :locale, :address, keyword_init: true) }
+
+    let(:notifier_class) do
+      AbstractNotifier::TestNotifier =
+        Class.new(described_class) do
+          self.driver = TestDriver
+
+          attr_reader :user
+
+          before_action do
+            if params
+              @user = params[:user]
+            end
+          end
+
+          before_action :ensure_user_has_address
+
+          around_action(only: :tested) do |_, block|
+            @user.locale = :fr
+            block.call
+          ensure
+            @user.locale = :en
+          end
+
+          def tested(text)
+            notification(
+              body: "Notification for #{user.name} [#{user.locale}]: #{text}",
+              to: user.address
+            )
+          end
+
+          def another_event(text)
+            notification(
+              body: "Another event for #{user.name} [#{user.locale}]: #{text}",
+              to: user.address
+            )
+          end
+
+          private
+
+          def ensure_user_has_address
+            return false unless user&.address
+
+            true
+          end
+        end
+    end
+
+    let(:user) { user_class.new(name: "Arthur", locale: "uk", address: "123-123") }
+
+    specify "when callbacks pass" do
+      expect { notifier_class.with(user:).tested("bonjour").notify_now }
+        .to change { notifier_class.driver.deliveries.size }.by(1)
+
+      expect(last_delivery).to eq(body: "Notification for Arthur [fr]: bonjour", to: "123-123")
+    end
+
+    specify "when a callback is not fired for the action" do
+      expect { notifier_class.with(user:).another_event("hello").notify_now }
+        .to change { notifier_class.driver.deliveries.size }.by(1)
+
+      expect(last_delivery).to eq(body: "Another event for Arthur [uk]: hello", to: "123-123")
+    end
+
+    specify "when callback chain is interrupted" do
+      user.address = nil
+      expect { notifier_class.with(user:).tested("bonjour").notify_now }
+        .not_to change { notifier_class.driver.deliveries.size }
+    end
+  end
 end
