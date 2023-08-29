@@ -1,25 +1,53 @@
 # frozen_string_literal: true
 
 module AbstractNotifier
-  # Notificaiton payload wrapper which contains
+  # NotificationDelivery payload wrapper which contains
   # information about the current notifier class
   # and knows how to trigger the delivery
-  class Notification
-    attr_reader :payload, :owner
+  class NotificationDelivery
+    attr_reader :action_name
 
-    def initialize(owner, payload)
-      @owner = owner
-      @payload = payload
+    def initialize(owner_class, action_name, params: {}, args: [], kwargs: {})
+      @owner_class = owner_class
+      @action_name = action_name
+      @params = params
+      @args = args
+      @kwargs = kwargs
     end
 
+    def processed
+      return @processed if instance_variable_defined?(:@processed)
+
+      @processed = notifier.process_action(action_name, *args, **kwargs) || Notification.new(nil)
+    end
+
+    alias_method :notification, :processed
+
     def notify_later
-      return if AbstractNotifier.noop? || payload.nil?
-      owner.async_adapter.enqueue owner, payload
+      owner_class.async_adapter.enqueue(owner_class.name, action_name, params:, args:, kwargs:)
     end
 
     def notify_now
-      return if AbstractNotifier.noop? || payload.nil?
-      owner.driver.call(payload)
+      return unless notification.payload
+
+      notifier.deliver!(notification)
+    end
+
+    private
+
+    attr_reader :owner_class, :params, :args, :kwargs
+
+    def notifier
+      @notifier ||= owner_class.new(action_name, **params)
+    end
+  end
+
+  # Notification object contains the compiled payload to be delivered
+  class Notification
+    attr_reader :payload
+
+    def initialize(payload)
+      @payload = payload
     end
   end
 
@@ -35,11 +63,7 @@ module AbstractNotifier
 
       # rubocop:disable Style/MethodMissingSuper
       def method_missing(method_name, *args, **kwargs)
-        if kwargs.empty?
-          notifier_class.new(method_name, **params).process_action(method_name, *args)
-        else
-          notifier_class.new(method_name, **params).process_action(method_name, *args, **kwargs)
-        end
+        NotificationDelivery.new(notifier_class, method_name, params:, args:, kwargs:)
       end
       # rubocop:enable Style/MethodMissingSuper
 
@@ -112,9 +136,9 @@ module AbstractNotifier
           end
       end
 
-      def method_missing(method_name, *args)
+      def method_missing(method_name, *args, **kwargs)
         if action_methods.include?(method_name.to_s)
-          new(method_name).process_action(method_name, *args)
+          NotificationDelivery.new(self, method_name, args:, kwargs:)
         else
           super
         end
@@ -152,8 +176,12 @@ module AbstractNotifier
       @params = params.freeze
     end
 
-    def process_action(method_name, *args)
-      public_send(method_name, *args)
+    def process_action(...)
+      public_send(...)
+    end
+
+    def deliver!(notification)
+      self.class.driver.call(notification.payload)
     end
 
     def notification(**payload)
@@ -161,7 +189,8 @@ module AbstractNotifier
 
       raise ArgumentError, "Notification body must be present" if
         payload[:body].nil? || payload[:body].empty?
-      Notification.new(self.class, payload)
+
+      @notification = Notification.new(payload)
     end
 
     private

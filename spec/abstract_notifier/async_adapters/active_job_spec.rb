@@ -3,6 +3,10 @@
 require "spec_helper"
 
 describe "ActiveJob adapter", skip: !defined?(ActiveJob) do
+  if defined?(ActiveJob::TestHelper)
+    include ActiveJob::TestHelper
+  end
+
   before { AbstractNotifier.delivery_mode = :normal }
   after { AbstractNotifier.delivery_mode = :test }
 
@@ -17,6 +21,12 @@ describe "ActiveJob adapter", skip: !defined?(ActiveJob) do
             body: "Notification #{title}: #{text}"
           )
         end
+
+        def params_tested(a, b, locale: :en)
+          notification(
+            body: "Notification for #{params[:user]} [#{locale}]: #{a}=#{b}"
+          )
+        end
       end
   end
 
@@ -29,7 +39,7 @@ describe "ActiveJob adapter", skip: !defined?(ActiveJob) do
     specify do
       expect { notifier_class.tested("a", "b").notify_later }
         .to have_enqueued_job(AbstractNotifier::AsyncAdapters::ActiveJob::DeliveryJob)
-        .with("AbstractNotifier::TestNotifier", body: "Notification a: b")
+        .with("AbstractNotifier::TestNotifier", :tested, params: {}, args: ["a", "b"], kwargs: {})
         .on_queue("notifiers")
     end
 
@@ -43,7 +53,7 @@ describe "ActiveJob adapter", skip: !defined?(ActiveJob) do
           .to have_enqueued_job(
             AbstractNotifier::AsyncAdapters::ActiveJob::DeliveryJob
           )
-          .with("AbstractNotifier::TestNotifier", body: "Notification a: b")
+          .with("AbstractNotifier::TestNotifier", :tested, params: {}, args: ["a", "b"], kwargs: {})
           .on_queue("test")
       end
     end
@@ -60,9 +70,31 @@ describe "ActiveJob adapter", skip: !defined?(ActiveJob) do
       specify do
         expect { notifier_class.tested("a", "b").notify_later }
           .to have_enqueued_job(job_class)
-          .with("AbstractNotifier::TestNotifier", body: "Notification a: b")
+          .with("AbstractNotifier::TestNotifier", :tested, params: {}, args: ["a", "b"], kwargs: {})
           .on_queue("notifiers")
       end
+    end
+
+    context "when params specified and method accepts kwargs" do
+      specify do
+        expect { notifier_class.with(foo: "bar").tested("a", "b", mode: :test).notify_later }
+          .to have_enqueued_job(AbstractNotifier::AsyncAdapters::ActiveJob::DeliveryJob)
+          .with("AbstractNotifier::TestNotifier", :tested, params: {foo: "bar"}, args: ["a", "b"], kwargs: {mode: :test})
+          .on_queue("notifiers")
+      end
+    end
+  end
+
+  describe "#peform" do
+    let(:last_delivery) { notifier_class.driver.deliveries.last }
+
+    specify do
+      perform_enqueued_jobs do
+        expect { notifier_class.with(user: "Alice").params_tested("a", "b", locale: :fr).notify_later }
+          .to change { notifier_class.driver.deliveries.size }.by(1)
+      end
+
+      expect(last_delivery).to eq(body: "Notification for Alice [fr]: a=b")
     end
   end
 end

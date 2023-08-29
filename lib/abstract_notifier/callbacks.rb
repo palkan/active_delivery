@@ -15,6 +15,14 @@ module AbstractNotifier
   #   after_action :cleanup
   #
   #   around_action :set_context
+  #
+  #   # Deliver callbacks are also available
+  #   before_deliver :do_something
+  #
+  #   # after_ and around_ callbacks are also supported
+  #   after_deliver :cleanup
+  #
+  #   around_deliver :set_context
   module Callbacks
     extend ActiveSupport::Concern
 
@@ -26,12 +34,21 @@ module AbstractNotifier
       define_callbacks :action,
         terminator: CALLBACK_TERMINATOR,
         skip_after_callbacks_if_terminated: true
+
+      define_callbacks :deliver,
+        terminator: CALLBACK_TERMINATOR,
+        skip_after_callbacks_if_terminated: true
+
       prepend InstanceExt
     end
 
     module InstanceExt
       def process_action(...)
-        run_callbacks(:action) { super(...) } || Notification.new(self, nil)
+        run_callbacks(:action) { super(...) }
+      end
+
+      def deliver!(...)
+        run_callbacks(:deliver) { super(...) }
       end
     end
 
@@ -50,21 +67,23 @@ module AbstractNotifier
       end
 
       %i[before after around].each do |kind|
-        define_method "#{kind}_action" do |*names, on: :action, **options, &block|
-          _normalize_callback_options(options)
+        %i[action deliver].each do |event|
+          define_method "#{kind}_#{event}" do |*names, on: event, **options, &block|
+            _normalize_callback_options(options)
 
-          names.each do |name|
-            set_callback on, kind, name, options
+            names.each do |name|
+              set_callback on, kind, name, options
+            end
+
+            set_callback on, kind, block, options if block
           end
 
-          set_callback on, kind, block, options if block
-        end
+          define_method "skip_#{kind}_#{event}" do |*names, on: event, **options|
+            _normalize_callback_options(options)
 
-        define_method "skip_#{kind}_action" do |*names, on: :action, **options|
-          _normalize_callback_options(options)
-
-          names.each do |name|
-            skip_callback(on, kind, name, options)
+            names.each do |name|
+              skip_callback(on, kind, name, options)
+            end
           end
         end
       end

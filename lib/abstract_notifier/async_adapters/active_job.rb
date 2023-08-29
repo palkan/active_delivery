@@ -4,8 +4,8 @@ module AbstractNotifier
   module AsyncAdapters
     class ActiveJob
       class DeliveryJob < ::ActiveJob::Base
-        def perform(notifier_class, payload)
-          AbstractNotifier::Notification.new(notifier_class.constantize, payload).notify_now
+        def perform(notifier_class, ...)
+          AbstractNotifier::NotificationDelivery.new(notifier_class.constantize, ...).notify_now
         end
       end
 
@@ -17,8 +17,8 @@ module AbstractNotifier
         @job = job.set(queue: queue)
       end
 
-      def enqueue(notifier_class, payload)
-        job.perform_later(notifier_class.name, payload)
+      def enqueue(...)
+        job.perform_later(...)
       end
     end
   end

@@ -2,49 +2,53 @@
 
 ## master
 
-- Add callbacks support to Abstract Notifier. ([@palkan][])
+- [!IMPORTANT] Notifier's `#notify_later` now do not process the action right away, only enqueue the job. ([@palkan][]).
+
+  This matches the Action Mailer behaviour. Now, the action is only invoked before the delivery attempt.
+
+- Add callbacks support to Abstract Notifier (`before_action`, `after_deliver`, etc.). ([@palkan][])
 
 - **Merge in abstract_notifier** ([@palkan][])
 
-[Abstract Notifier](https://github.com/palkan/abstract_notifier) is now a part of Active Delivery.
+  [Abstract Notifier](https://github.com/palkan/abstract_notifier) is now a part of Active Delivery.
 
 - Add ability to specify delivery actions explicitly and disable implicit proxying. ([@palkan][])
 
-You can disable default Active Delivery behaviour of proxying action methods to underlying lines via the `ActiveDelivery.deliver_actions_required = true` configuration option. Then, in each delivery class, you can specify the available actions via the `.delivers` method:
+  You can disable default Active Delivery behaviour of proxying action methods to underlying lines via the `ActiveDelivery.deliver_actions_required = true` configuration option. Then, in each delivery class, you can specify the available actions via the `.delivers` method:
 
-```ruby
-class PostMailer < ApplicationMailer
-  def published(post)
-    # ...
+  ```ruby
+  class PostMailer < ApplicationMailer
+    def published(post)
+      # ...
+    end
+
+    def whatever(post)
+      # ...
+    end
   end
 
-  def whatever(post)
-    # ...
+  ActiveDelivery.deliver_actions_required = true
+
+  class PostDelivery < ApplicationDelivery
+    delivers :published
   end
-end
 
-ActiveDelivery.deliver_actions_required = true
-
-class PostDelivery < ApplicationDelivery
-  delivers :published
-end
-
-PostDelivery.published(post) #=> ok
-PostDelivery.whatever(post) #=> raises NoMethodError
-```
+  PostDelivery.published(post) #=> ok
+  PostDelivery.whatever(post) #=> raises NoMethodError
+  ```
 
 - Add `#deliver_via(*lines)` RSpec matcher. ([@palkan][])
 
 - Provide ActionMailer-like interface to trigger notifications. ([@palkan][])
 
-Now you can send notifications as follows:
+  Now you can send notifications as follows:
 
-```ruby
-MyDelivery.with(user:).new_notification(payload).deliver_later
+  ```ruby
+  MyDelivery.with(user:).new_notification(payload).deliver_later
 
-# Equals to the old (and still supported)
-MyDelivery.with(user:).notify(:new_notification, payload)
-```
+  # Equals to the old (and still supported)
+  MyDelivery.with(user:).notify(:new_notification, payload)
+  ```
 
 - Support passing a string class name as a handler class. ([@palkan][])
 

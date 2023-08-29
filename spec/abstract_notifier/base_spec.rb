@@ -26,18 +26,20 @@ describe AbstractNotifier::Base do
       AbstractNotifier.const_defined?(:TestNotifier)
   end
 
-  it "returns Notification object" do
-    expect(notifier_class.tested("Hello", "world")).to be_a(AbstractNotifier::Notification)
+  it "returns NotificationDelivery object" do
+    expect(notifier_class.tested("Hello", "world")).to be_a(AbstractNotifier::NotificationDelivery)
   end
 
   specify "#notify_later" do
     expect { notifier_class.tested("a", "b").notify_later }
       .to change { AbstractNotifier.async_adapter.jobs.size }.by(1)
 
-    notifier, payload = AbstractNotifier.async_adapter.jobs.last
+    notifier, action_name, _params, args, kwargs = AbstractNotifier.async_adapter.jobs.last
 
-    expect(notifier).to be_eql(notifier_class)
-    expect(payload).to eq(body: "Notification a: b")
+    expect(notifier).to be_eql(notifier_class.name)
+    expect(action_name).to eq(:tested)
+    expect(args).to eq(["a", "b"])
+    expect(kwargs).to be_empty
   end
 
   specify "#notify_now" do
@@ -206,6 +208,12 @@ describe AbstractNotifier::Base do
     let(:notifier_class) do
       AbstractNotifier::TestNotifier =
         Class.new(described_class) do
+          class << self
+            attr_reader :events
+          end
+
+          @events = []
+
           self.driver = TestDriver
 
           attr_reader :user
@@ -223,6 +231,18 @@ describe AbstractNotifier::Base do
             block.call
           ensure
             @user.locale = :en
+          end
+
+          before_deliver do
+            self.class.events << [notification_name, :before_deliver]
+          end
+
+          after_deliver do
+            self.class.events << [notification_name, :after_deliver]
+          end
+
+          after_action do
+            self.class.events << [notification_name, :after_action]
           end
 
           def tested(text)
@@ -269,6 +289,45 @@ describe AbstractNotifier::Base do
       user.address = nil
       expect { notifier_class.with(user:).tested("bonjour").notify_now }
         .not_to change { notifier_class.driver.deliveries.size }
+    end
+
+    specify "delivery callbacks" do
+      notification = notifier_class.with(user:).tested("bonjour")
+      expect(notifier_class.events).to be_empty
+
+      queue = Object.new
+      queue.define_singleton_method(:enqueue) do |notifier_class, action_name, params:, args:, kwargs:|
+        @backlog ||= []
+        @backlog << [notifier_class, action_name, params, args, kwargs]
+      end
+
+      queue.define_singleton_method(:process) do
+        @backlog.each do |notifier_class, action_name, params, args, kwargs|
+          AbstractNotifier::NotificationDelivery.new(notifier_class.constantize, action_name, params:, args:, kwargs:).notify_now
+        end
+      end
+
+      notifier_class.async_adapter = queue
+
+      notification.notify_later
+
+      # Still empty: both delivery and action callbacks are called only on delivery
+      expect(notifier_class.events).to be_empty
+
+      # Trigger notification building
+      notification.processed
+
+      expect(notifier_class.events.size).to eq(1)
+      expect(notifier_class.events.first).to eq([:tested, :after_action])
+
+      notifier_class.events.clear
+
+      queue.process
+
+      expect(notifier_class.events.size).to eq(3)
+      expect(notifier_class.events[0]).to eq([:tested, :after_action])
+      expect(notifier_class.events[1]).to eq([:tested, :before_deliver])
+      expect(notifier_class.events[2]).to eq([:tested, :after_deliver])
     end
   end
 end

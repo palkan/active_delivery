@@ -27,23 +27,27 @@ module AbstractNotifier
       end
     end
 
-    module Notification
+    module NotificationDelivery
       def notify_now
         return super unless AbstractNotifier.test?
 
-        Driver.send_notification payload.merge(via: owner)
+        payload = notification.payload
+
+        Driver.send_notification payload.merge(via: notifier.class)
       end
 
       def notify_later
         return super unless AbstractNotifier.test?
 
-        Driver.enqueue_notification payload.merge(via: owner)
+        payload = notification.payload
+
+        Driver.enqueue_notification payload.merge(via: notifier.class)
       end
     end
   end
 end
 
-AbstractNotifier::Notification.prepend AbstractNotifier::Testing::Notification
+AbstractNotifier::NotificationDelivery.prepend AbstractNotifier::Testing::NotificationDelivery
 
 require "abstract_notifier/testing/rspec" if defined?(RSpec::Core)
 require "abstract_notifier/testing/minitest" if defined?(Minitest::Assertions)

@@ -6,3 +6,7 @@ require:
 AllCops:
   Include:
     - '**/*.md'
+
+Layout/InitialIndentation:
+  Exclude:
+    - '**/*.md'

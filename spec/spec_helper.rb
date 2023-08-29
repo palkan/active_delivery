@@ -35,8 +35,8 @@ class TestJobAdapter
     @jobs = []
   end
 
-  def enqueue(notifier, payload)
-    jobs << [notifier, payload]
+  def enqueue(notifier, action_name, params:, args:, kwargs:)
+    jobs << [notifier, action_name, params, args, kwargs]
   end
 
   def clear
