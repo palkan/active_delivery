@@ -2,6 +2,8 @@
 
 ## master
 
+## 📬 1.0.0 (2023-08-29)
+
 - Add `resolver_pattern` option to specify naming pattern for notifiers without using Procs. ([@palkan][])
 
 - [!IMPORTANT] Notifier's `#notify_later` now do not process the action right away, only enqueue the job. ([@palkan][]).
