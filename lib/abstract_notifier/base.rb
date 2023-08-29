@@ -187,6 +187,8 @@ module AbstractNotifier
     def notification(**payload)
       merge_defaults!(payload)
 
+      payload[:body] = implicit_payload_body unless payload.key?(:body)
+
       raise ArgumentError, "Notification body must be present" if
         payload[:body].nil? || payload[:body].empty?
 
@@ -194,6 +196,10 @@ module AbstractNotifier
     end
 
     private
+
+    def implicit_payload_body
+      # no-op — override to provide custom logic
+    end
 
     def merge_defaults!(payload)
       defaults =
