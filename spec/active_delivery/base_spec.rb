@@ -5,6 +5,7 @@ describe ActiveDelivery::Base do
   before(:all) do
     ActiveDelivery::Base.register_line :quack, QuackLine
     ActiveDelivery::Base.register_line :quack_quack, QuackLine, suffix: "Quackkk"
+    ActiveDelivery::Base.register_line :quacky, ActiveDelivery::Lines::Base, resolver_pattern: "%{delivery_namespace}Quacky%{delivery_name}"
   end
 
   before do
@@ -43,6 +44,13 @@ describe ActiveDelivery::Base do
       sub_delivery = DeliveryTesting.const_set(:SubDelivery, Class.new(parent_delivery))
 
       expect(sub_delivery.quack_class).to be_eql(quack_class)
+    end
+
+    it "infers line class from pattern" do
+      delivery = DeliveryTesting.const_set(:SomeDelivery, Class.new(described_class))
+      quacky_class = DeliveryTesting.const_set(:QuackySome, Class.new)
+
+      expect(delivery.quacky_class).to be_eql(quacky_class)
     end
 
     it "uses explicit quack" do

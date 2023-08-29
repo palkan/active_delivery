@@ -18,7 +18,7 @@ module ActiveDelivery
 
       def initialize(**opts)
         super
-        @resolver = opts.fetch(:resolver, build_resolver(options.fetch(:suffix, DEFAULT_SUFFIX)))
+        @resolver ||= build_resolver(options.fetch(:suffix, DEFAULT_SUFFIX))
       end
 
       def resolve_class(klass)

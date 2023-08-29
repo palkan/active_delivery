@@ -79,8 +79,16 @@ class ApplicationDelivery < ActiveDelivery::Base
   # Mailers are enabled by default, everything else must be declared explicitly
 
   # For example, you can use a notifier line (see below) with a custom resolver
+  # (the argument is the delivery class)
   register_line :sms, ActiveDelivery::Lines::Notifier,
-    resolver: -> { _1.name.gsub(/Delivery$/, "SMSNotifier").safe_constantize }
+    resolver: -> { _1.name.gsub(/Delivery$/, "SMSNotifier").safe_constantize } #=> PostDelivery -> PostSMSNotifier
+
+  # Or you can use a name pattern to resolve notifier classes for delivery classes
+  # Available placeholders are:
+  #  - delivery_class — full delivery class name
+  #  - delivery_name — full delivery class name without the "Delivery" suffix
+  register_line :webhook, ActiveDelivery::Lines::Notifier,
+    resolver_pattern: "%{delivery_name}WebhookNotifier" #=> PostDelivery -> PostWebhookNotifier
 
   register_line :cable, ActionCableDeliveryLine
   # and more
@@ -151,6 +159,45 @@ ActiveDelivery.deliver_actions_required = true
 
 PostDelivery.published(post) #=> ok
 PostDelivery.whatever(post) #=> raises NoMethodError
+```
+
+### Organizing delivery and notifier classes
+
+There are two common ways to organize delivery and notifier classes in your codebase:
+
+```txt
+app/
+  deliveries/                                 deliveries/
+    application_delivery.rb                     application_delivery.rb
+    post_delivery.rb                            post_delivery/
+    user_delivery.rb                              post_mailer.rb
+  mailers/                                        post_sms_notifier.rb
+    application_mailer.rb                         post_webhook_notifier.rb
+    post_mailer.rb                              post_delivery.rb
+    user_mailer.rb                              user_delivery/
+  notifiers/                                      user_mailer.rb
+    application_notifier.rb                       user_sms_notifier.rb
+    post_sms_notifier.rb                          user_webhook_notifier.rb
+    post_webhook_notifier.rb                    user_delivery.rb
+    user_sms_notifier.rb
+    user_webhook_notifier.rb
+```
+
+The left side is a _flat_ structure, more typical for classic Rails applications. The right side follows the _sidecar pattern_ and aims to localize all the code related to a specific delivery class in a single directory. To use the sidecar version, you need to configure your delivery lines as follows:
+
+```ruby
+class ApplicationDelivery < ActiveDelivery::Base
+  self.abstract_class = true
+
+  register_line :mailer, ActiveDelivery::Lines::Mailer,
+    resolver_pattern: "%{delivery_class}::%{delivery_name}_mailer"
+  register_line :sms,
+    notifier: true,
+    resolver_pattern: "%{delivery_class}::%{delivery_name}_sms_notifier"
+  register_line :webhook,
+    notifier: true,
+    resolver_pattern: "%{delivery_class}::%{delivery_name}_webhook_notifier"
+end
 ```
 
 ### Customizing delivery handlers
@@ -821,6 +868,9 @@ class ApplicationDelivery < ActiveDelivery::Base
   # You can define a custom suffix to use for notifier classes:
   #   `*Delivery` -> `*CustomNotifier`
   register_line :custom_notifier, notifier: true, suffix: "CustomNotifier"
+
+  # Or using a custom pattern
+  register_line :custom_notifier, notifier: true, resolver_pattern: "%{delivery_name}CustomNotifier"
 
   # Or you can specify a Proc object to do custom resolution:
   register_line :some_notifier, notifier: true,

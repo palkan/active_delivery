@@ -2,6 +2,8 @@
 
 ## master
 
+- Add `resolver_pattern` option to specify naming pattern for notifiers without using Procs. ([@palkan][])
+
 - [!IMPORTANT] Notifier's `#notify_later` now do not process the action right away, only enqueue the job. ([@palkan][]).
 
   This matches the Action Mailer behaviour. Now, the action is only invoked before the delivery attempt.

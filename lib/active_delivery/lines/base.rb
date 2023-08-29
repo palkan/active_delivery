@@ -16,7 +16,7 @@ module ActiveDelivery
         @id = id
         @owner = owner
         @options = options.tap(&:freeze)
-        @resolver = options[:resolver]
+        @resolver = options[:resolver] || build_pattern_resolver(options[:resolver_pattern])
       end
 
       def dup_for(new_owner)
@@ -65,6 +65,25 @@ module ActiveDelivery
       private
 
       attr_reader :resolver
+
+      def build_pattern_resolver(pattern)
+        return unless pattern
+
+        proc do |delivery|
+          delivery_class = delivery.name
+
+          next unless delivery_class
+
+          *namespace, delivery_name = delivery_class.split("::")
+
+          delivery_namespace = ""
+          delivery_namespace = "#{namespace.join("::")}::" unless namespace.empty?
+
+          delivery_name = delivery_name.sub(/Delivery$/, "")
+
+          (pattern % {delivery_class:, delivery_name:, delivery_namespace:}).safe_constantize
+        end
+      end
     end
   end
 end
