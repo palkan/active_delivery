@@ -43,6 +43,20 @@
 
 - Add `#deliver_via(*lines)` RSpec matcher. ([@palkan][])
 
+- **BREAKING** The `#resolve_class` method in Line classes now receive a delivery class instead of a name:
+
+  ```ruby
+  # before
+  def resolve_class(name)
+    name.gsub(/Delivery$/, "Channel").safe_constantize
+  end
+
+  # after
+  def resolve_class(name)
+    name.to_s.gsub(/Delivery$/, "Channel").safe_constantize
+  end
+  ```
+
 - Provide ActionMailer-like interface to trigger notifications. ([@palkan][])
 
   Now you can send notifications as follows:
