@@ -38,6 +38,10 @@ module ActiveDelivery
         handler.public_send(mid, *args).notify_later
       end
 
+      def notify_later_with_options(handler, enqueue_options, mid, *args)
+        handler.public_send(mid, *args).notify_later(**enqueue_options)
+      end
+
       private
 
       attr_reader :resolver

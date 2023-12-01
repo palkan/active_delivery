@@ -19,6 +19,10 @@ module ActiveDelivery
       def notify_later(mailer, mid, ...)
         mailer.public_send(mid, ...).deliver_later
       end
+
+      def notify_later_with_options(mailer, enqueue_options, mid, ...)
+        mailer.public_send(mid, ...).deliver_later(**enqueue_options)
+      end
     end
 
     ActiveDelivery::Base.register_line :mailer, Mailer, resolver: Mailer::DEFAULT_RESOLVER

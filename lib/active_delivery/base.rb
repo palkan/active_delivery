@@ -12,9 +12,9 @@ module ActiveDelivery
       @metadata = metadata.freeze
     end
 
-    def deliver_later = owner.perform_notify(self)
+    def deliver_later(**opts) = owner.perform_notify(self, enqueue_options: opts)
 
-    def deliver_now = owner.perform_notify(self, sync: true)
+    def deliver_now(**opts) = owner.perform_notify(self, sync: true)
 
     def delivery_class = owner.class
   end
@@ -216,22 +216,23 @@ module ActiveDelivery
 
     protected
 
-    def perform_notify(delivery, sync: false)
+    def perform_notify(delivery, sync: false, enqueue_options: {})
       delivery_lines.each do |type, line|
         next unless line.notify?(delivery.notification)
 
-        notify_line(type, line, delivery, sync:)
+        notify_line(type, line, delivery, sync:, enqueue_options:)
       end
     end
 
     private
 
-    def notify_line(type, line, delivery, sync:)
+    def notify_line(type, line, delivery, sync:, enqueue_options:)
       line.notify(
         delivery.notification,
         *delivery.params,
         params:,
         sync:,
+        enqueue_options:,
         **delivery.options
       )
       true

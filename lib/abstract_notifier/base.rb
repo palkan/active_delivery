@@ -5,10 +5,10 @@ module AbstractNotifier
   # information about the current notifier class
   # and knows how to trigger the delivery
   class NotificationDelivery
-    attr_reader :action_name
+    attr_reader :action_name, :notifier_class
 
-    def initialize(owner_class, action_name, params: {}, args: [], kwargs: {})
-      @owner_class = owner_class
+    def initialize(notifier_class, action_name, params: {}, args: [], kwargs: {})
+      @notifier_class = notifier_class
       @action_name = action_name
       @params = params
       @args = args
@@ -23,8 +23,12 @@ module AbstractNotifier
 
     alias_method :notification, :processed
 
-    def notify_later
-      owner_class.async_adapter.enqueue(owner_class.name, action_name, params:, args:, kwargs:)
+    def notify_later(**opts)
+      if notifier_class.async_adapter.respond_to?(:enqueue_delivery)
+        notifier_class.async_adapter.enqueue_delivery(self, **opts)
+      else
+        notifier_class.async_adapter.enqueue(notifier_class.name, action_name, params:, args:, kwargs:)
+      end
     end
 
     def notify_now
@@ -33,12 +37,14 @@ module AbstractNotifier
       notifier.deliver!(notification)
     end
 
+    def delivery_params = {params:, args:, kwargs:}
+
     private
 
-    attr_reader :owner_class, :params, :args, :kwargs
+    attr_reader :params, :args, :kwargs
 
     def notifier
-      @notifier ||= owner_class.new(action_name, **params)
+      @notifier ||= notifier_class.new(action_name, **params)
     end
   end
 

@@ -83,9 +83,20 @@ describe "ActiveJob adapter", skip: !defined?(ActiveJob) do
           .on_queue("notifiers")
       end
     end
+
+    context "with wait_until specified" do
+      specify do
+        deadline = 1.hour.from_now
+        expect { notifier_class.tested("a", "b").notify_later(wait_until: deadline) }
+          .to have_enqueued_job(AbstractNotifier::AsyncAdapters::ActiveJob::DeliveryJob)
+          .with("AbstractNotifier::TestNotifier", :tested, params: {}, args: ["a", "b"], kwargs: {})
+          .on_queue("notifiers")
+          .at(deadline)
+      end
+    end
   end
 
-  describe "#peform" do
+  describe "#perform" do
     let(:last_delivery) { notifier_class.driver.deliveries.last }
 
     specify do

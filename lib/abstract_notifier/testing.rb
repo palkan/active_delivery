@@ -36,12 +36,12 @@ module AbstractNotifier
         Driver.send_notification payload.merge(via: notifier.class)
       end
 
-      def notify_later
+      def notify_later(**opts)
         return super unless AbstractNotifier.test?
 
         payload = notification.payload
 
-        Driver.enqueue_notification payload.merge(via: notifier.class)
+        Driver.enqueue_notification payload.merge(via: notifier.class, **opts)
       end
     end
   end

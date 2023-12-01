@@ -11,14 +11,23 @@ module AbstractNotifier
 
       DEFAULT_QUEUE = "notifiers"
 
-      attr_reader :job
+      attr_reader :job, :queue
 
       def initialize(queue: DEFAULT_QUEUE, job: DeliveryJob)
-        @job = job.set(queue: queue)
+        @job = job
+        @queue = queue
       end
 
       def enqueue(...)
-        job.perform_later(...)
+        job.set(queue:).perform_later(...)
+      end
+
+      def enqueue_delivery(delivery, **opts)
+        job.set(queue:, **opts).perform_later(
+          delivery.notifier_class.name,
+          delivery.action_name,
+          **delivery.delivery_params
+        )
       end
     end
   end

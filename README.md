@@ -113,6 +113,9 @@ PostsDelivery.published(user, post).deliver_later
 PostsMailer.published(user, post).deliver_later
 PostsSMSNotifier.published(user, post).notify_later
 
+# You can also pass options supported by your async executor (such as ActiveJob)
+PostsDelivery.published(user, post).deliver_later(wait_until: 1.day.from_now)
+
 # and whaterver your ActionCableDeliveryLine does
 # under the hood.
 ```
@@ -706,7 +709,7 @@ end
 
 ### Background jobs / async notifications
 
-To use `#notify_later` you **must** configure an async adapter for Abstract Notifier.
+To use `#notify_later(**delivery_options)` you **must** configure an async adapter for Abstract Notifier.
 
 We provide an Active Job adapter out of the box and enable it if Active Job is found.
 
@@ -718,13 +721,13 @@ class MyAsyncAdapter
   def initialize(options = {})
   end
 
-  # `enqueue` method accepts notifier class, action name and notification parameters
-  def enqueue(notifier_class, action_name, params:, args:, kwargs:)
+  # `enqueue_delivery` method accepts notifier class, action name and notification parameters
+  def enqueue_delivery(delivery, **options)
     # <Your implementation here>
     # To trigger the notification delivery, you can use the following snippet:
     #
     #   AbstractNotifier::NotificationDelivery.new(
-    #     notifier_class.constantize, action_name, params:, args:, kwargs:
+    #     delivery.notifier_class, delivery.action_name, **delivery.delivery_params
     #   ).notify_now
   end
 end

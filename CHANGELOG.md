@@ -2,6 +2,8 @@
 
 ## master
 
+- Support delayed delivery options (e.g, `wait_until`). ([@palkan][])
+
 ## 📬 1.0.0 (2023-08-29)
 
 - Add `resolver_pattern` option to specify naming pattern for notifiers without using Procs. ([@palkan][])

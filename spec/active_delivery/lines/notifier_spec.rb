@@ -75,30 +75,40 @@ describe ActiveDelivery::Lines::Notifier do
     end
   end
 
-  describe ".notify" do
-    describe ".notify" do
-      it "enqueues notification" do
-        expect { delivery_class.with(user: "Bart").do_something("Magic people voodoo people!").deliver_later }
-          .to have_enqueued_notification(via: notifier_class, body: "Magic people voodoo people!", to: "Bart")
-          .and have_enqueued_notification(via: reverse_notifier_class, body: "!elpoep oodoov elpoep cigaM", to: "Bart")
-          .and have_enqueued_notification(via: pattern_notifier_class, body: "[NESTED] Magic people voodoo people!", to: "Bart")
-          .and have_enqueued_notification(via: custom_notifier_class, body: "[CUSTOM] Magic people voodoo people!", to: "Bart")
-      end
-
-      it "do nothing when notifier doesn't have provided public method" do
-        expect { delivery_class.notify(:do_nothing) }
-          .not_to have_enqueued_notification
-      end
+  describe "#delivery_later" do
+    it "enqueues notification" do
+      expect { delivery_class.with(user: "Bart").do_something("Magic people voodoo people!").deliver_later }
+        .to have_enqueued_notification(via: notifier_class, body: "Magic people voodoo people!", to: "Bart")
+        .and have_enqueued_notification(via: reverse_notifier_class, body: "!elpoep oodoov elpoep cigaM", to: "Bart")
+        .and have_enqueued_notification(via: pattern_notifier_class, body: "[NESTED] Magic people voodoo people!", to: "Bart")
+        .and have_enqueued_notification(via: custom_notifier_class, body: "[CUSTOM] Magic people voodoo people!", to: "Bart")
     end
 
-    describe ".notify!" do
-      it "sends notification" do
-        expect { delivery_class.with(user: "Bart").notify!(:do_something, "Voyage-voyage!") }
-          .to have_sent_notification(via: notifier_class, body: "Voyage-voyage!", to: "Bart")
-          .and have_sent_notification(via: reverse_notifier_class, body: "!egayov-egayoV", to: "Bart")
-          .and have_sent_notification(via: pattern_notifier_class, body: "[NESTED] Voyage-voyage!", to: "Bart")
-          .and have_sent_notification(via: custom_notifier_class, body: "[CUSTOM] Voyage-voyage!", to: "Bart")
+    context "with delivery options" do
+      it "enqueues notification with options" do
+        expect { delivery_class.with(user: "Bart").do_something("Magic people voodoo people!").deliver_later(queue: "test") }
+          .to have_enqueued_notification(via: notifier_class, body: "Magic people voodoo people!", to: "Bart", queue: "test")
+          .and have_enqueued_notification(via: reverse_notifier_class, body: "!elpoep oodoov elpoep cigaM", to: "Bart", queue: "test")
+          .and have_enqueued_notification(via: pattern_notifier_class, body: "[NESTED] Magic people voodoo people!", to: "Bart", queue: "test")
+          .and have_enqueued_notification(via: custom_notifier_class, body: "[CUSTOM] Magic people voodoo people!", to: "Bart", queue: "test")
       end
+    end
+  end
+
+  describe "#notify" do
+    it "do nothing when notifier doesn't have provided public method" do
+      expect { delivery_class.notify(:do_nothing) }
+        .not_to have_enqueued_notification
+    end
+  end
+
+  describe ".notify!" do
+    it "sends notification" do
+      expect { delivery_class.with(user: "Bart").notify!(:do_something, "Voyage-voyage!") }
+        .to have_sent_notification(via: notifier_class, body: "Voyage-voyage!", to: "Bart")
+        .and have_sent_notification(via: reverse_notifier_class, body: "!egayov-egayoV", to: "Bart")
+        .and have_sent_notification(via: pattern_notifier_class, body: "[NESTED] Voyage-voyage!", to: "Bart")
+        .and have_sent_notification(via: custom_notifier_class, body: "[CUSTOM] Voyage-voyage!", to: "Bart")
     end
   end
 end
