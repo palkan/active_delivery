@@ -2,6 +2,8 @@
 
 ## master
 
+## 1.1.0 (2023-12-01) ❄️
+
 - Support delayed delivery options (e.g, `wait_until`). ([@palkan][])
 
 ## 📬 1.0.0 (2023-08-29)
