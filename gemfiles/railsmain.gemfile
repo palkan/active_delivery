@@ -2,4 +2,6 @@ source "https://rubygems.org"
 
 gem "rails", github: "rails/rails"
 
+eval_gemfile "./ruby-next.gemfile"
+
 gemspec path: ".."

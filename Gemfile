@@ -6,6 +6,8 @@ gem "debug", platform: :mri unless ENV["CI"]
 
 gemspec
 
+eval_gemfile "./gemfiles/ruby-next.gemfile"
+
 eval_gemfile "gemfiles/rubocop.gemfile"
 
 local_gemfile = "#{File.dirname(__FILE__)}/Gemfile.local"

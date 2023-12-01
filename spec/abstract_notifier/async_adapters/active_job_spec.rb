@@ -4,6 +4,7 @@ require "spec_helper"
 
 describe "ActiveJob adapter", skip: !defined?(ActiveJob) do
   if defined?(ActiveJob::TestHelper)
+    include RSpec::Rails::RailsExampleGroup
     include ActiveJob::TestHelper
   end
 
