@@ -56,7 +56,7 @@ end
 Add this line to your application's Gemfile:
 
 ```ruby
-gem "active_delivery", "1.0.0.rc2"
+gem "active_delivery", "~> 1.0"
 ```
 
 And then execute:
