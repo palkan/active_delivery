@@ -14,8 +14,4 @@ inherit_from:
 AllCops:
   NewCops: disable
   SuggestExtensions: false
-  TargetRubyVersion: 3.2
-
-# Not fully supported by Ruby Next yet
-Style/ArgumentsForwarding:
-  Enabled: false
+  TargetRubyVersion: 3.3

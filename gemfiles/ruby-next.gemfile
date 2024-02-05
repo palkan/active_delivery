@@ -1,2 +1,2 @@
-gem "ruby-next", github: "ruby-next/ruby-next"
+gem "ruby-next"
 gem "require-hooks", "~> 0.2"
