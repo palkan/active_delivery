@@ -23,9 +23,9 @@ module AbstractNotifier
 
     alias_method :notification, :processed
 
-    def notify_later(**opts)
+    def notify_later(**)
       if notifier_class.async_adapter.respond_to?(:enqueue_delivery)
-        notifier_class.async_adapter.enqueue_delivery(self, **opts)
+        notifier_class.async_adapter.enqueue_delivery(self, **)
       else
         notifier_class.async_adapter.enqueue(notifier_class.name, action_name, params:, args:, kwargs:)
       end
@@ -73,8 +73,8 @@ module AbstractNotifier
       end
       # rubocop:enable Style/MethodMissingSuper
 
-      def respond_to_missing?(*args)
-        notifier_class.respond_to_missing?(*args)
+      def respond_to_missing?(*)
+        notifier_class.respond_to_missing?(*)
       end
     end
 

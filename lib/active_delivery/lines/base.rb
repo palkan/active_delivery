@@ -41,16 +41,16 @@ module ActiveDelivery
         notify_later(handler, mid, ...)
       end
 
-      def notify(mid, *args, params:, sync:, enqueue_options:, **kwargs)
+      def notify(mid, *, params:, sync:, enqueue_options:, **)
         clazz = params.empty? ? handler_class : handler_class.with(**params)
         if sync
-          return notify_now(clazz, mid, *args, **kwargs)
+          return notify_now(clazz, mid, *, **)
         end
 
         if enqueue_options.empty?
-          notify_later(clazz, mid, *args, **kwargs)
+          notify_later(clazz, mid, *, **)
         else
-          notify_later_with_options(clazz, enqueue_options, mid, *args, **kwargs)
+          notify_later_with_options(clazz, enqueue_options, mid, *, **)
         end
       end
 

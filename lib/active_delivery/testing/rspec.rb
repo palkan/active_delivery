@@ -207,14 +207,14 @@ end
 
 RSpec.configure do |config|
   config.include(Module.new do
-    def have_delivered_to(*args)
-      ActiveDelivery::HaveDeliveredTo.new(*args)
+    def have_delivered_to(*)
+      ActiveDelivery::HaveDeliveredTo.new(*)
     end
   end)
 
   config.include(Module.new do
-    def deliver_via(*args)
-      ActiveDelivery::DeliverVia.new(*args)
+    def deliver_via(*)
+      ActiveDelivery::DeliverVia.new(*)
     end
   end, type: :delivery)
 end

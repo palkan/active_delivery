@@ -153,12 +153,12 @@ end
 
 RSpec.configure do |config|
   config.include(Module.new do
-    def have_sent_notification(*args)
-      AbstractNotifier::HaveSentNotification.new(*args)
+    def have_sent_notification(*)
+      AbstractNotifier::HaveSentNotification.new(*)
     end
 
-    def have_enqueued_notification(*args)
-      AbstractNotifier::HaveEnqueuedNotification.new(*args)
+    def have_enqueued_notification(*)
+      AbstractNotifier::HaveEnqueuedNotification.new(*)
     end
   end)
 end

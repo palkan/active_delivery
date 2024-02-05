@@ -77,8 +77,8 @@ module ActiveDelivery
 
       # The same as .notify but delivers synchronously
       # (i.e. #deliver_now for mailers)
-      def notify!(mid, *args, **hargs)
-        notify(mid, *args, **hargs, sync: true)
+      def notify!(mid, *, **hargs)
+        notify(mid, *, **hargs, sync: true)
       end
 
       alias_method :notify_now, :notify!
@@ -93,7 +93,7 @@ module ActiveDelivery
         end
       end
 
-      def register_line(line_id, line_class = nil, notifier: nil, **options)
+      def register_line(line_id, line_class = nil, notifier: nil, **)
         raise ArgumentError, "A line class or notifier configuration must be provided" if line_class.nil? && notifier.nil?
 
         # Configure Notifier
@@ -101,7 +101,7 @@ module ActiveDelivery
           line_class = ActiveDelivery::Lines::Notifier
         end
 
-        delivery_lines[line_id] = line_class.new(id: line_id, owner: self, **options)
+        delivery_lines[line_id] = line_class.new(id: line_id, owner: self, **)
 
         instance_eval <<~CODE, __FILE__, __LINE__ + 1
           def #{line_id}(val)
@@ -152,13 +152,13 @@ module ActiveDelivery
         super
       end
 
-      def method_missing(mid, *args, **kwargs)
+      def method_missing(mid, *, **)
         return super unless respond_to_missing?(mid)
 
         # Lazily define a class method to avoid lookups
         delivers(mid)
 
-        public_send(mid, *args, **kwargs)
+        public_send(mid, *, **)
       end
     end
 
@@ -197,7 +197,7 @@ module ActiveDelivery
       super
     end
 
-    def method_missing(mid, *args, **kwargs)
+    def method_missing(mid, *, **)
       return super unless respond_to_missing?(mid)
 
       # Lazily define a method to avoid future lookups
@@ -211,7 +211,7 @@ module ActiveDelivery
         end
       CODE
 
-      public_send(mid, *args, **kwargs)
+      public_send(mid, *, **)
     end
 
     protected

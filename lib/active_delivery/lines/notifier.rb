@@ -30,16 +30,16 @@ module ActiveDelivery
         handler_class.action_methods.include?(method_name.to_s)
       end
 
-      def notify_now(handler, mid, *args)
-        handler.public_send(mid, *args).notify_now
+      def notify_now(handler, mid, *)
+        handler.public_send(mid, *).notify_now
       end
 
-      def notify_later(handler, mid, *args)
-        handler.public_send(mid, *args).notify_later
+      def notify_later(handler, mid, *)
+        handler.public_send(mid, *).notify_later
       end
 
-      def notify_later_with_options(handler, enqueue_options, mid, *args)
-        handler.public_send(mid, *args).notify_later(**enqueue_options)
+      def notify_later_with_options(handler, enqueue_options, mid, *)
+        handler.public_send(mid, *).notify_later(**enqueue_options)
       end
 
       private

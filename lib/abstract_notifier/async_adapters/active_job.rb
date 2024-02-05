@@ -22,8 +22,8 @@ module AbstractNotifier
         job.set(queue:).perform_later(...)
       end
 
-      def enqueue_delivery(delivery, **opts)
-        job.set(queue:, **opts).perform_later(
+      def enqueue_delivery(delivery, **)
+        job.set(queue:, **).perform_later(
           delivery.notifier_class.name,
           delivery.action_name,
           **delivery.delivery_params

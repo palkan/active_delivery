@@ -442,8 +442,8 @@ class EventPigeon
     alias_method :with, :new
 
     # delegate delivery action to the instance
-    def message_arrived(*args)
-      new.message_arrived(*args)
+    def message_arrived(*)
+      new.message_arrived(*)
     end
   end
 
@@ -479,17 +479,17 @@ class PigeonLine < ActiveDelivery::Lines::Base
   # Called when we want to send message synchronously
   # `sender` here either `sender_class` or `sender_class.with(params)`
   # if params passed.
-  def notify_now(sender, delivery_action, *args, **kwargs)
+  def notify_now(sender, delivery_action, *, **)
     # For example, our EventPigeon class returns some `Pigeon` object
-    pigeon = sender.public_send(delivery_action, *args, **kwargs)
+    pigeon = sender.public_send(delivery_action, *, **)
     # PigeonLaunchService do all the sending job
     PigeonService.launch pigeon
   end
 
   # Called when we want to send a message asynchronously.
   # For example, you can use a background job here.
-  def notify_later(sender, delivery_action, *args, **kwargs)
-    pigeon = sender.public_send(delivery_action, *args, **kwargs)
+  def notify_later(sender, delivery_action, *, **)
+    pigeon = sender.public_send(delivery_action, *, **)
     # PigeonLaunchService do all the sending job
     PigeonLaunchJob.perform_later pigeon
   end
@@ -507,8 +507,8 @@ class EventPigeon
     alias_method :with, :new
 
     # delegate delivery action to the instance
-    def message_arrived(*args)
-      new.message_arrived(*args)
+    def message_arrived(*)
+      new.message_arrived(*)
     end
   end
 
@@ -523,18 +523,18 @@ class EventPigeon
 end
 
 class PigeonLine < ActiveDelivery::Lines::Base
-  def notify_later(sender, delivery_action, *args, **kwargs)
+  def notify_later(sender, delivery_action, *, **kwargs)
     # `to_s` is important for serialization. Unless you might have error
-    PigeonLaunchJob.perform_later sender.class.to_s, delivery_action, *args, **kwargs.merge(params: line.params)
+    PigeonLaunchJob.perform_later(sender.class.to_s, delivery_action, *, **kwargs.merge(params: line.params))
   end
 end
 
 class PigeonLaunchJob < ActiveJob::Base
-  def perform(sender, delivery_action, *args, params: nil, **kwargs)
+  def perform(sender, delivery_action, *, params: nil, **)
     klass = sender.safe_constantize
     handler = params ? klass.with(**params) : klass.new
 
-    handler.public_send(delivery_action, *args, **kwargs)
+    handler.public_send(delivery_action, *, **)
   end
 end
 ```
@@ -623,12 +623,12 @@ class ActionCableDeliveryLine < ActiveDelivery::Line::Base
   # We want to broadcast all notifications
   def notify?(...) = true
 
-  def notify_now(context, delivery_action, *args, **kwargs)
+  def notify_now(context, delivery_action, *, **)
     # Skip if no user provided
     return unless context.user
 
     payload = {event: [context.scope, delivery_action].join(".")}
-    payload.merge!(serialized_args(*args, **kwargs))
+    payload.merge!(serialized_args(*, **))
 
     DeliveryChannel.broadcast_to context.user, payload
   end
