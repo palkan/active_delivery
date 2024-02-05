@@ -10,6 +10,8 @@ Since v1.0, Active Delivery is bundled with [Abstract Notifier](https://github.c
 
 📖 Read the introduction post: ["Crafting user notifications in Rails with Active Delivery"](https://evilmartians.com/chronicles/crafting-user-notifications-in-rails-with-active-delivery)
 
+📖 Read more about designing notifications layer in Ruby on Rails applications in the [Layered design for Ruby on Rails applications](https://www.packtpub.com/product/layered-design-for-ruby-on-rails-applications/9781801813785) book.
+
 <a href="https://evilmartians.com/?utm_source=action_policy">
 <img src="https://evilmartians.com/badges/sponsored-by-evil-martians.svg" alt="Sponsored by Evil Martians" width="236" height="54"></a>
 
@@ -291,16 +293,35 @@ MyDeliver.notify(:something_wicked_this_way_comes)
 
 ## Testing
 
-**NOTE:** Currently, only RSpec matchers are provided.
+### Setup
+
+Test mode is activated automatically if `RAILS_ENV` or `RACK_ENV` env variable is equal to "test". Otherwise, add `require "active_delivery/testing/rspec"` to your `spec_helper.rb` / `rails_helper.rb` manually or `require "active_delivery/testing/minitest"`. This is also required if you're using Spring in the test environment (e.g. with help of [spring-commands-rspec](https://github.com/jonleighton/spring-commands-rspec)).
+
+For Minitest, you also MUST include the test helper into your test class. For example:
+
+```ruby
+class ActiveSupport::TestCase
+  # ...
+  include ActiveDelivery::TestHelper
+end
+```
 
 ### Deliveries
 
-Active Delivery provides an elegant way to test deliveries in your code (i.e., when you want to check whether a notification has been sent) through a `have_delivered_to` matcher:
+Active Delivery provides an elegant way to test deliveries in your code (i.e., when you want to check whether a notification has been sent) through a `have_delivered_to` RSpec matcher or `assert_delivery_enqueued` Minitest assertion:
 
 ```ruby
+# RSpec
 it "delivers notification" do
   expect { subject }.to have_delivered_to(Community::EventsDelivery, :modified, event)
     .with(profile: profile)
+end
+
+# Minitest
+def test_delivers_notification
+  assert_delivery_enqueued(Community::EventsDelivery, :modified, with: [event]) do
+    some_action
+  end
 end
 ```
 
@@ -320,14 +341,27 @@ end
 If you want to test that no notification is delivered you can use negation
 
 ```ruby
+# RSpec
 specify "when event is not found" do
   expect do
     described_class.perform_now(profile.id, "123", "one_hour_before")
   end.not_to have_delivered_to(Community::EventsDelivery)
 end
+
+# Minitest
+def test_no_notification_if_event_is_not_found
+  assert_no_deliveries do
+    some_action
+  end
+
+  # Alternatively, you can use the positive assertion
+  assert_deliveries(0) do
+    some_action
+  end
+end
 ```
 
-or use the `#have_not_delivered_to` matcher:
+With RSpec, you can also use the `#have_not_delivered_to` matcher:
 
 ```ruby
 specify "when event is not found" do
@@ -360,7 +394,7 @@ describe PostsDelivery do
 end
 ```
 
-You can also use the `#deliver_via` matchers as follows:
+You can also use the `#deliver_via` RSpec matcher as follows:
 
 ```ruby
 describe PostsDelivery, type: :delivery do
@@ -386,8 +420,6 @@ describe PostsDelivery, type: :delivery do
   end
 end
 ```
-
-**NOTE:** test mode activated automatically if `RAILS_ENV` or `RACK_ENV` env variable is equal to "test". Otherwise, add `require "active_delivery/testing/rspec"` to your `spec_helper.rb` / `rails_helper.rb` manually. This is also required if you're using Spring in the test environment (e.g. with help of [spring-commands-rspec](https://github.com/jonleighton/spring-commands-rspec)).
 
 ## Custom "lines"
 

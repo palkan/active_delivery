@@ -2,6 +2,8 @@
 
 ## master
 
+- Add Minitest assertions (`assert_deliveries`, `assert_no_deliveries`, `assert_delivery_enqueued`). ([@palkan][])
+
 ## 1.1.0 (2023-12-01) ❄️
 
 - Support delayed delivery options (e.g, `wait_until`). ([@palkan][])

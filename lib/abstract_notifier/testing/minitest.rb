@@ -19,7 +19,7 @@ module AbstractNotifier
 
     def assert_notifications_enqueued(count, params)
       yield
-      assert_equal enqueued_deliveries.count, count
+      assert_equal count, enqueued_deliveries.count
       count.times do |i|
         delivery = enqueued_deliveries[0 - i]
         if !params[:via]

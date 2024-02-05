@@ -60,3 +60,4 @@ end
 ActiveDelivery::Base.prepend ActiveDelivery::TestDelivery
 
 require "active_delivery/testing/rspec" if defined?(RSpec::Core)
+require "active_delivery/testing/minitest" if defined?(Minitest::Assertions)
