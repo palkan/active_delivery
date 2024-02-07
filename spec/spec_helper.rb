@@ -11,8 +11,8 @@ require "ruby-next/language/runtime"
 
 if ENV["CI"] == "true"
   # Only transpile specs, source code MUST be loaded from pre-transpiled files
-  RubyNext::Language.watch_dirs.clear
-  RubyNext::Language.watch_dirs << __dir__
+  RubyNext::Language.include_patterns.clear
+  RubyNext::Language.include_patterns << File.join(__dir__, "*.rb")
 end
 
 unless ENV["NO_RAILS"]
