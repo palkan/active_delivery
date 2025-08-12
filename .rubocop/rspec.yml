@@ -1,4 +1,4 @@
-require:
+plugins:
   - rubocop-rspec
 
 # Disable all cops by default,
@@ -43,13 +43,4 @@ RSpec/MissingExampleGroupArgument:
   Enabled: true
 
 RSpec/ReceiveCounts:
-  Enabled: true
-
-Capybara/CurrentPathExpectation:
-  Enabled: true
-
-FactoryBot/AttributeDefinedStatically:
-  Enabled: true
-
-FactoryBot/CreateList:
   Enabled: true

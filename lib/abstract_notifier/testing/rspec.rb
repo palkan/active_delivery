@@ -90,7 +90,7 @@ module AbstractNotifier
     end
 
     def failure_message
-      (+"expected to #{verb_present} notification: #{payload_description}").tap do |msg|
+      (+"expected to #{verb_present} notification: #{payload_description}").tap do |msg| # rubocop:disable Style/RedundantInterpolationUnfreeze
         msg << " #{message_expectation_modifier}, but"
 
         if @unmatching_deliveries.any?
