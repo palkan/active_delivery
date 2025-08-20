@@ -431,6 +431,79 @@ A line connects _delivery_ to the _sender_ class responsible for sending notific
 
 If you want to use parameterized deliveries, your _sender_ class must respond to `.with(params)` method.
 
+### Action Native Push integration
+
+You can integrate a push notifications delivery line backed by [Action Native Push](https://github.com/basecamp/action_native_push) as follows.
+
+Why not using Action Native Push directly? First, using notifier objects brings consistency to various notification methods (mails, pushes, etc.). Secondly, you keep a single entrypoint for triggering all kind of notifications—a delivery object. Finally, wrapping Action Native Push logic into a notifier enhance the testability of the code (Action Native Push doesn't provide any testing utils, notifications are just disabled in test env).
+
+First, define a base ApplicationPushNotifer class:
+
+```ruby
+class ApplicationPushNotifier < AbstractNotifier::Base
+  self.driver = proc do |payload|
+    devices = payload.delete(:to)
+    next if devices.blank?
+    ApplicationPushNotification.new(**payload)
+      .deliver_later_to(devices)
+  end
+
+  default do
+    next unless user
+    {to: user.devices}
+  end
+
+  private def user = params[:user]
+end
+```
+
+The driver's logic assumes having a single application configured for push notifications. You can easily extend it to support multiple applications, for example, by adding the application id to the default params.
+
+The setup above also looks up the devices list from the user object (passed via params). Feel free to update this bit to reflect your application's business logic.
+
+Then, register the `push` line in the ApplicationDelivery class:
+
+```ruby
+class ApplicationDelivery < ActiveDelivery::Base
+  # Register the line
+  register_line :push, notifier: true, suffix: "PushNotifier"
+
+  # Optionally, define a callback to decide when to send push notifications
+  before_notify :ensure_push_enabled, on: :push
+
+  private
+
+  def ensure_push_enabled
+    !!user&.push_notifications_enabled?
+  end
+end
+```
+
+Now, you can define a custom push notifier class similar to a mailer with the nofication contents building logic. For example:
+
+```ruby
+class PostPushNotifer < ApplicationPushNotifier
+  def new_comment(comment)
+    post = params[:post]
+
+    notification(
+      title: "New comment",
+      body: "#{comment.user.name} post a comment to your post #{post.title}",
+      # You can provide an options supported by Action Native Push here
+      badge: author.unreads.count,
+      apple_data: {},
+      google_data: {}
+    )
+  end
+end
+
+# Usage
+PostDelivery.with(user:, post:).new_comment(comment)
+
+# Will trigger
+PostPushNotifer.with(user:, post:).new_comment(comment)
+```
+
 ### A full-featured line example: pigeons 🐦
 
 Assume that we want to send messages via _pigeons_ and we have the following sender class:
