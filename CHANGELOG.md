@@ -2,6 +2,8 @@
 
 ## master
 
+## 1.2.1 (2025-08-20)
+
 - Add `raise_on_line_error = true | false` configuration option to deliveries. ([@palkan][])
 
 ## 1.2.0 (2024-02-05)
