@@ -2,6 +2,8 @@
 
 ## master
 
+- Add `raise_on_line_error = true | false` configuration option to deliveries. ([@palkan][])
+
 ## 1.2.0 (2024-02-05)
 
 - Add Minitest assertions (`assert_deliveries`, `assert_no_deliveries`, `assert_delivery_enqueued`). ([@palkan][])

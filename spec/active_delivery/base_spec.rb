@@ -159,6 +159,33 @@ describe ActiveDelivery::Base do
         end
       end
     end
+
+    context "line notification errors" do
+      before do
+        quack_class.singleton_class.prepend(Module.new do
+          def do_something(required_argument)
+          end
+        end)
+      end
+
+      specify "#notify! raises an exception" do
+        expect { delivery_class.notify!(:do_something) }
+          .to raise_error(ArgumentError, /wrong number of arguments/)
+      end
+
+      context "when raise_on_line_error = false" do
+        let(:subdelivery_class) { Class.new(delivery_class) { self.raise_on_line_error = false } }
+
+        specify "#notify! warns on line error" do
+          if defined?(::ActiveSupport.error_reporter)
+            expect(::ActiveSupport.error_reporter).to receive(:report)
+          else
+            expect(::Kernel).to receive(:warn)
+          end
+          subdelivery_class.notify!(:do_something)
+        end
+      end
+    end
   end
 
   describe ".unregister_line" do

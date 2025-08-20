@@ -160,9 +160,18 @@ module ActiveDelivery
 
         public_send(mid, *, **)
       end
+
+      attr_writer :raise_on_line_error
+
+      def raise_on_line_error
+        return @raise_on_line_error if instance_variable_defined?(:@raise_on_line_error)
+
+        @raise_on_line_error = superclass.respond_to?(:raise_on_line_error) ? superclass.raise_on_line_error : true
+      end
     end
 
     self.abstract_class = true
+    self.raise_on_line_error = true
 
     attr_reader :params, :notification_name
 
@@ -221,6 +230,12 @@ module ActiveDelivery
         next unless line.notify?(delivery.notification)
 
         notify_line(type, line, delivery, sync:, enqueue_options:)
+      rescue => line_error
+        if self.class.raise_on_line_error
+          raise
+        else
+          capture_line_error(type, line_error)
+        end
       end
     end
 
@@ -244,6 +259,13 @@ module ActiveDelivery
 
     def delivery_lines
       self.class.delivery_lines
+    end
+
+    def capture_line_error(type, line_error)
+      ::Kernel.warn(<<~MESSAGE)
+        Delivery line #{type} raised an error on #notify: #{line_error.message}
+        #{line_error.backtrace&.join("\n")}
+      MESSAGE
     end
   end
 end

@@ -291,6 +291,32 @@ MyDeliver.notify(:something_wicked_this_way_comes)
 #=> Delivery triggered: something_wicked_this_way_comes
 ```
 
+## Handling line errors
+
+By default, if an error occurred during a delivery line notification, the delivery chain is halted and the error is raised (i.e., if the first delivery line raised an error on triggering a notification, all other lines are skipped).
+
+You can opt-in to ignoring line errors in your base delivery class:
+
+```ruby
+class ApplicationDelivery < ActiveDelivery::Base
+  self.raise_on_line_error = false
+end
+```
+
+In this case, errors are rescued and reported to the Rails error reporter (if available) or printed as warnings. If you want to handle such errors yourself, you can define the following method:
+
+```ruby
+class ApplicationDelivery < ActiveDelivery::Base
+  self.raise_on_line_error = false
+
+  private
+
+  def capture_line_error(line_type, line_error)
+    # do whatever you want
+  end
+end
+```
+
 ## Testing
 
 ### Setup

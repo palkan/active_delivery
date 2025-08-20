@@ -46,6 +46,14 @@ module ActiveDelivery
       def notify_line(kind, ...)
         run_callbacks(kind) { super(kind, ...) }
       end
+
+      def capture_line_error(type, line_error)
+        if defined?(::ActiveSupport.error_reporter)
+          ::ActiveSupport.error_reporter.report(line_error)
+        else
+          super
+        end
+      end
     end
 
     module SingltonExt
