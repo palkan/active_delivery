@@ -12,8 +12,9 @@ Since v1.0, Active Delivery is bundled with [Abstract Notifier](https://github.c
 
 📖 Read more about designing notifications layer in Ruby on Rails applications in the [Layered design for Ruby on Rails applications](https://www.packtpub.com/product/layered-design-for-ruby-on-rails-applications/9781801813785) book.
 
-<a href="https://evilmartians.com/?utm_source=action_policy">
-<img src="https://evilmartians.com/badges/sponsored-by-evil-martians.svg" alt="Sponsored by Evil Martians" width="236" height="54"></a>
+<br/>
+
+<img src="https://cdn.evilmartians.com/badges/logo-no-label.svg" alt="Evil Martians logo" width="22" height="16" /> <b>Active Delivery</b> is built by <b><a href="https://evilmartians.com/">Evil Martians</a></b>, an American design and engineering consultancy for <b>developer tools, AI, and cybersecurity startups</b>.
 
 Requirements:
 
