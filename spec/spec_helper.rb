@@ -7,13 +7,15 @@ begin
 rescue LoadError
 end
 
-require "ruby-next/language/runtime"
+require "ruby-next/language"
 
 if ENV["CI"] == "true"
   # Only transpile specs, source code MUST be loaded from pre-transpiled files
   RubyNext::Language.include_patterns.clear
   RubyNext::Language.include_patterns << File.join(__dir__, "*.rb")
 end
+
+require "ruby-next/language/runtime"
 
 unless ENV["NO_RAILS"]
   require "rails"
