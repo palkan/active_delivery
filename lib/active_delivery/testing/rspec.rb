@@ -100,7 +100,7 @@ module ActiveDelivery
     def failure_message
       (+"expected to deliver").tap do |msg|
         msg << " :#{event} notification" if event
-        msg << " via #{delivery_class}#{sync_value ? " (sync)" : ""} with:"
+        msg << " via #{delivery_class}#{" (sync)" if sync_value} with:"
         msg << "\n - params: #{params_description(params)}" if params
         msg << "\n - args: #{args.empty? ? "<none>" : args}"
         msg << "\n#{message_expectation_modifier}, but"
@@ -132,7 +132,7 @@ module ActiveDelivery
     end
 
     def failure_message_when_negated
-      "expected not to deliver #{event ? " :#{event} notification" : ""} via #{delivery_class}"
+      "expected not to deliver #{" :#{event} notification" if event} via #{delivery_class}"
     end
 
     def message_expectation_modifier
@@ -156,7 +156,7 @@ module ActiveDelivery
     def deliveries_description(deliveries)
       deliveries.each.with_object(+"") do |(delivery, options), msg|
         msg << "\n  :#{delivery.notification} via #{delivery.owner.class}" \
-              "#{options[:sync] ? " (sync)" : ""}" \
+              "#{" (sync)" if options[:sync]}" \
               " with:" \
               "\n   - params: #{delivery.owner.params.empty? ? "<none>" : delivery.owner.params.inspect}" \
               "\n   - args: #{delivery.params}" \

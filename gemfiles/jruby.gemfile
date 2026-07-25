@@ -2,6 +2,8 @@ source "https://rubygems.org"
 
 gem "rails", "~> 8.0"
 
+gem "rdoc", "< 8"
+
 eval_gemfile "./ruby-next.gemfile"
 
 gemspec path: ".."
